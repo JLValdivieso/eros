@@ -48,7 +48,7 @@ int main(void)
 
 
     /**/exit = /*test_decrypt_ecb() +*/ test_encrypt_ecb();/**//*test_encrypt_ecb_verbose();/**/
-   
+
 
     return EXIT_SUCCESS;
 }
@@ -101,7 +101,7 @@ static void test_encrypt_ecb_verbose(void)
 
     // print the resulting cipher as 4 x 16 byte strings
     printf("ciphertext:\n");
-    
+
     struct AES_ctx ctx;
     AES_init_ctx(&ctx, key);
 
@@ -120,7 +120,7 @@ static int test_encrypt_ecb(void)
             *P=0x0;
   /*
   /*Modification to trigger
-  /**/  
+  /**/
   volatile unsigned int *Private_reg = PRIVATE_REG_BASEADDRESS | CPU_PRIVATE_BREAKPOINT_SIM_REG_OFFSET;
   /**/
 #if defined(AES256)
@@ -151,7 +151,7 @@ static int test_encrypt_ecb(void)
 /*    if (*(P+1) == 0x0){
     *(P+1) = 0x1;
     CSR_READ(CSR_REG_MHARTID,P);
-    
+
     }*/
 
     AES_ECB_encrypt(&ctx, in);
@@ -185,7 +185,7 @@ static int test_decrypt_ecb(void)
 
     uint8_t out[]   = { 0x6b, 0xc1, 0xbe, 0xe2, 0x2e, 0x40, 0x9f, 0x96, 0xe9, 0x3d, 0x7e, 0x11, 0x73, 0x93, 0x17, 0x2a };
     struct AES_ctx ctx;
-    
+
     AES_init_ctx(&ctx, key);
     AES_ECB_decrypt(&ctx, in);
 

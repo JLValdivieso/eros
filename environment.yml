@@ -1,0 +1,9 @@
+name: eros
+channels:
+  - defaults
+dependencies:
+  - python>=3.8
+  - jinja2
+  - pip
+  - pip:
+      - hjson

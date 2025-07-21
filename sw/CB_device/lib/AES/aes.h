@@ -5,8 +5,8 @@
 #include <stddef.h>
 #include "base_address.h"
 #include "CPU_Private_regs.h"
-#include "csr.h"
-#include "csr_registers.h"
+//#include "csr.h"
+//#include "csr_registers.h"
 #include "CB_Safety.h"
 // #define the macros below to 1/0 to enable/disable the mode of operation.
 //

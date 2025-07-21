@@ -8,10 +8,9 @@
  *
  */
 
-module dmr_comparator
-  import obi_pkg::*;
-  import cei_mochila_pkg::*;
-#(
+module dmr_comparator #(
+    parameter type obi_req_t            = logic,
+    parameter type obi_resp_t           = logic,
     parameter NHARTS = 2
 ) (
     // Instruction Bus
@@ -27,7 +26,7 @@ module dmr_comparator
 
   logic [1:0] error_s;
 
-  //Checker 
+  //Checker
 
   always_comb begin
     error_s = '0;

@@ -4,22 +4,23 @@
 // Luis Waucquez (luis.waucquez.jimenez@upm.es)
 
 module safe_cpu_wrapper
-  import obi_pkg::*;
   import reg_pkg::*;
-  import cei_mochila_pkg::*;
+  import eros_pkg::*;
 #(
+    parameter type obi_req_t            = logic,
+    parameter type obi_resp_t           = logic,
     parameter NHARTS  = 3,
-    parameter NCYCLES = cei_mochila_pkg::NCYCLES
+    parameter NCYCLES = eros_pkg::NCYCLES
 ) (
     // Clock and Reset
     input logic clk_i,
     input logic rst_ni,
 
-    // Instruction memory interface 
+    // Instruction memory interface
     output obi_req_t  [NHARTS-1 : 0] core_instr_req_o,
     input  obi_resp_t [NHARTS-1 : 0] core_instr_resp_i,
 
-    // Data memory interface 
+    // Data memory interface
     output obi_req_t  [NHARTS-1 : 0] core_data_req_o,
     input  obi_resp_t [NHARTS-1 : 0] core_data_resp_i,
 
@@ -123,16 +124,19 @@ module safe_cpu_wrapper
   assign Core_ID[2] = {3'b100};
 
   //Isolate val bus
-  // Instruction memory interface 
+  // Instruction memory interface
   obi_resp_t [NHARTS-1 : 0] isolate_core_instr_resp;
 
-  // Data memory interface 
+  // Data memory interface
   obi_resp_t [NHARTS-1 : 0] isolate_core_data_resp;
 
 
   //***Cores System***//
 
-  cpu_system cpu_system_i (
+  cpu_system #(
+      .obi_req_t            (obi_req_t  ),
+      .obi_resp_t           (obi_resp_t )
+      ) cpu_system_i (
       .clk_i,
       .rst_ni,
       // Instruction memory interface
@@ -498,7 +502,10 @@ module safe_cpu_wrapper
     end
   end
 
-  tmr_voter #() tmr_voter0_i (
+  tmr_voter #(
+      .obi_req_t            (obi_req_t  ),
+      .obi_resp_t           (obi_resp_t )
+      ) tmr_voter0_i (
       // Instruction Bus
       .core_instr_req_i(tmr0_core_instr_req_i),
       .voted_core_instr_req_o(voted_core_instr_req_o[0]),
@@ -510,7 +517,10 @@ module safe_cpu_wrapper
       .error_o(tmr_error_s[0]),
       .error_id_o(tmr_errorid_s[0])
   );
-  tmr_voter #() tmr_voter1_i (
+  tmr_voter #(
+      .obi_req_t            (obi_req_t  ),
+      .obi_resp_t           (obi_resp_t )
+      ) tmr_voter1_i (
       // Instruction Bus
       .core_instr_req_i(tmr1_core_instr_req_i),
       .voted_core_instr_req_o(voted_core_instr_req_o[1]),
@@ -522,7 +532,10 @@ module safe_cpu_wrapper
       .error_o(tmr_error_s[1]),
       .error_id_o(tmr_errorid_s[1])
   );
-  tmr_voter #() tmr_voter2_i (
+  tmr_voter #(
+      .obi_req_t            (obi_req_t  ),
+      .obi_resp_t           (obi_resp_t )
+      ) tmr_voter2_i (
       // Instruction Bus
       .core_instr_req_i(tmr2_core_instr_req_i),
       .voted_core_instr_req_o(voted_core_instr_req_o[2]),
@@ -557,7 +570,7 @@ module safe_cpu_wrapper
     dmr_core_instr_req_i[2][0] = upper_mux_core_instr_req_i[2][2];
     dmr_core_data_req_i[2][0]  = upper_mux_core_data_req_i[2][2];
 
-    //Slaves Mux  
+    //Slaves Mux
     if (dmr_config_s[1] == 1'b1) begin  //Mux Comparador 0 Mask 110
       dmr_core_instr_req_i[0][1] = upper_mux_core_instr_req_i[1][0];
       dmr_core_data_req_i[0][1]  = upper_mux_core_data_req_i[1][0];
@@ -566,18 +579,18 @@ module safe_cpu_wrapper
       dmr_core_data_req_i[0][1]  = upper_mux_core_data_req_i[2][0];
     end
 
-    if (dmr_config_s[0] == 1'b1) begin  //Mux Comparador 1 Mask 110 
+    if (dmr_config_s[0] == 1'b1) begin  //Mux Comparador 1 Mask 110
       dmr_core_instr_req_i[1][1] = upper_mux_core_instr_req_i[0][1];
       dmr_core_data_req_i[1][1]  = upper_mux_core_data_req_i[0][1];
-    end else begin  //Mux Comparador 0 Mask 011 
+    end else begin  //Mux Comparador 0 Mask 011
       dmr_core_instr_req_i[1][1] = upper_mux_core_instr_req_i[2][1];
       dmr_core_data_req_i[1][1]  = upper_mux_core_data_req_i[2][1];
     end
 
-    if (dmr_config_s[1] == 1'b1) begin  //Mux Comparador 2 Mask 011 
+    if (dmr_config_s[1] == 1'b1) begin  //Mux Comparador 2 Mask 011
       dmr_core_instr_req_i[2][1] = upper_mux_core_instr_req_i[1][2];
       dmr_core_data_req_i[2][1]  = upper_mux_core_data_req_i[1][2];
-    end else begin  //Mux Comparador 0 Mask 101 
+    end else begin  //Mux Comparador 0 Mask 101
       dmr_core_instr_req_i[2][1] = upper_mux_core_instr_req_i[0][2];
       dmr_core_data_req_i[2][1]  = upper_mux_core_data_req_i[0][2];
     end
@@ -646,6 +659,8 @@ module safe_cpu_wrapper
 
   for (genvar i = 0; i < NRCOMPARATORS; i++) begin : eros_dmr_lockstep_
     lockstep_reg #(
+        .obi_req_t            (obi_req_t  ),
+        .obi_resp_t           (obi_resp_t ),
         .NCYCLES(NCYCLES)
     ) lockstep_reg_i (
         .clk_i,
@@ -698,7 +713,10 @@ module safe_cpu_wrapper
 
   for (genvar i = 0; i < NRCOMPARATORS; i++) begin : eros_dmr_comparator
 
-    dmr_comparator #() dmr_comparator_i (
+    dmr_comparator #(
+        .obi_req_t            (obi_req_t  ),
+        .obi_resp_t           (obi_resp_t )
+    ) dmr_comparator_i (
         .core_instr_req_i(lockstep_mux_core_instr_req_i[i]),
         .compared_core_instr_req_o(compared_core_instr_req_o[i]),
         .core_data_req_i(lockstep_mux_core_data_req_i[i]),
@@ -715,19 +733,21 @@ module safe_cpu_wrapper
     // ARCHITECTURE
     // ------------
     //                ,---- SLAVE[0] (System Bus)
-    // CPUx <--> XBARx 
+    // CPUx <--> XBARx
     //                `---- SLAVE[1] (Private Register)
     //
 
     //***CPU xbar***//
-    xbar_varlat_one_to_n #(
-        .XBAR_NSLAVE  (cei_mochila_pkg::CPU_XBAR_SLAVE),
-        .NUM_RULES    (cei_mochila_pkg::CPU_XBAR_NRULES),
+    eros_xbar_varlat_one_to_n #(
+        .obi_req_t            (obi_req_t  ),
+        .obi_resp_t           (obi_resp_t ),
+        .XBAR_NSLAVE  (32'd2),
+        .NUM_RULES    (32'd1),
         .AGGREGATE_GNT(32'd1)                              // Not previous aggregate masters
-    ) xbar_varlat_one_to_n_i (
+    ) eros_xbar_varlat_one_to_n_i (
         .clk_i(clk_i),
         .rst_ni(rst_ni),
-        .addr_map_i(cei_mochila_pkg::CPU_XBAR_ADDR_RULES),
+        .addr_map_i(eros_pkg::CPU_XBAR_ADDR_RULES),
         .default_idx_i(1'b0),                   //in case of not known decoded address it's forwarded down to system bus
         .master_req_i(core_data_req[i]),
         .master_resp_o(core_data_resp[i]),

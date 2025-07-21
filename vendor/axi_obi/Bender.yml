@@ -16,3 +16,4 @@ sources:
   - axi_to_detailed_mem_user.sv
   - axi_to_obi.sv
   - obi_to_axi.sv
+  - axi2obi.sv

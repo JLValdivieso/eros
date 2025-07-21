@@ -41,7 +41,6 @@ ARCH     ?= rv32imc
 # Path relative from the location of sw/Makefile from which to fetch source files. The directory of that file is the default value.
 SOURCE 	 ?= $(".")
 
-
 # riscv toolchain install path
 RISCV                      ?= ~/.riscv
 RISCV_EXE_PREFIX           = $(RISCV)/bin/${COMPILER_PREFIX}elf-

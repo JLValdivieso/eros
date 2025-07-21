@@ -67,6 +67,10 @@ app-clean:
 		$(MAKE) app-restore;\
 	fi
 
+
+vendor: ./vendor/openhwgroup_cve2.vendor.hjson
+	python3 ./util/vendor.py --update ./vendor/openhwgroup_cve2.vendor.hjson
+
 ## Removes the CMake build folder
 app-restore:
 	rm -rf sw/build

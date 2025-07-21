@@ -9,9 +9,10 @@
  */
 
 module tmr_voter
-  import obi_pkg::*;
-  import cei_mochila_pkg::*;
+  import eros_pkg::*;
 #(
+    parameter type obi_req_t            = logic,
+    parameter type obi_resp_t           = logic,
     parameter NHARTS = 3
 ) (
     // Instruction Bus
@@ -80,7 +81,7 @@ module tmr_voter
 
 
 
-  // Checker 
+  // Checker
   always_comb begin
     instr_error_s = '0;
     data_error_s = '0;

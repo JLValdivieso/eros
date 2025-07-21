@@ -4,26 +4,26 @@
 // Luis Waucquez (luis.waucquez.jimenez@upm.es)
 
 module cpu_system
-  import obi_pkg::*;
-  import cei_mochila_pkg::*;
-  import core_v_mini_mcu_pkg::*;
-  import fpu_ss_pkg::*;
+  import eros_pkg::*;
+//  import fpu_ss_pkg::*;
 #(
-    parameter BOOT_ADDR = cei_mochila_pkg::DEBUG_BOOTROM_START_ADDRESS,
+    parameter type obi_req_t            = logic,
+    parameter type obi_resp_t           = logic,
+    parameter BOOT_ADDR = eros_pkg::DEBUG_BOOTROM_START_ADDRESS,
     parameter NHARTS = 3,
     parameter HARTID = 32'h01,
-    parameter cei_mochila_pkg::cpu_type_e CPU = cei_mochila_pkg::CPU_type,
+    parameter eros_pkg::cpu_type_e CPU = eros_pkg::CPU_type,
     parameter COPROCESSOR = 0,
-    parameter DM_HALTADDRESS = cei_mochila_pkg::DEBUG_BOOTROM_START_ADDRESS + 32'h50
+    parameter DM_HALTADDRESS = eros_pkg::DEBUG_BOOTROM_START_ADDRESS + 32'h50
 ) (
     // Clock and Reset
     input logic clk_i,
     input logic rst_ni,
-    // Instruction memory interface 
+    // Instruction memory interface
     output obi_req_t [NHARTS-1 : 0] core_instr_req_o,
     input obi_resp_t [NHARTS-1 : 0] core_instr_resp_i,
 
-    // Data memory interface 
+    // Data memory interface
     output obi_req_t  [NHARTS-1 : 0] core_data_req_o,
     input  obi_resp_t [NHARTS-1 : 0] core_data_resp_i,
 
@@ -48,7 +48,7 @@ module cpu_system
 
   assign fetch_enable = 1'b1;
 
-  //Core 0 
+  //Core 0
   assign core_instr_req_o[0].wdata = '0;
   assign core_instr_req_o[0].we    = '0;
   assign core_instr_req_o[0].be    = 4'b1111;
@@ -62,7 +62,7 @@ module cpu_system
   assign core_instr_req_o[2].wdata = '0;
   assign core_instr_req_o[2].we    = '0;
   assign core_instr_req_o[2].be    = 4'b1111;
-
+/*
   if (CPU == CV32E40P) begin : gen_eros_cv32e40p
     cv32e40p_top #(
         .COREV_PULP      (0),
@@ -204,7 +204,7 @@ module cpu_system
         .fetch_enable_i(fetch_enable),
         .core_sleep_o  (sleep_o[2])
     );
-
+/*
   end else if (CPU == CV32E40PX) begin : gen_eros_cv32e40px
 
     //    import cv32e40px_core_v_xif_pkg::*;
@@ -301,7 +301,7 @@ module cpu_system
     ) ext_if_core0 ();
 
     if (COPROCESSOR == 1) begin
-      /*** Put here coprocessor ***/
+      /*** Put here coprocessor ***/ /*
       fpu_ss_wrapper #(
           .PULP_ZFINX(ZFINX),
           .INPUT_BUFFER_DEPTH(1),
@@ -321,7 +321,7 @@ module cpu_system
           .xif_mem_result_if(ext_if_core0),
           .xif_result_if(ext_if_core0)
       );
-      /****************************/
+      /****************************/ /*
     end else begin
 
       // CORE-V-XIF
@@ -440,7 +440,7 @@ module cpu_system
     ) ext_if_core1 ();
 
     if (COPROCESSOR == 1) begin
-      /*** Put here coprocessor ***/
+      /*** Put here coprocessor ***/ /*
       fpu_ss_wrapper #(
           .PULP_ZFINX(ZFINX),
           .INPUT_BUFFER_DEPTH(1),
@@ -460,7 +460,7 @@ module cpu_system
           .xif_mem_result_if(ext_if_core1),
           .xif_result_if(ext_if_core1)
       );
-      /****************************/
+      /****************************/ /*
     end else begin
 
       // CORE-V-XIF
@@ -578,7 +578,7 @@ module cpu_system
     ) ext_if_core2 ();
 
     if (COPROCESSOR == 1) begin
-      /*** Put here coprocessor ***/
+      /*** Put here coprocessor ***/ /*
       fpu_ss_wrapper #(
           .PULP_ZFINX(ZFINX),
           .INPUT_BUFFER_DEPTH(1),
@@ -598,7 +598,7 @@ module cpu_system
           .xif_mem_result_if(ext_if_core2),
           .xif_result_if(ext_if_core2)
       );
-      /****************************/
+      /****************************/ /*
     end else begin
 
       // CORE-V-XIF
@@ -623,8 +623,10 @@ module cpu_system
       assign ext_if_core2.result = '0;
 
     end
-
+*/
+/*
   end else begin : gen_eros_cv32e20
+*/
     // instantiate the core 0
     cve2_top #() cv32e20_core0 (
         .clk_i (clk_i),
@@ -757,5 +759,5 @@ module cpu_system
         .fetch_enable_i(fetch_enable),
         .core_sleep_o  (sleep_o[2])
     );
-  end
+//  end
 endmodule

@@ -9,7 +9,7 @@ module safe_wrapper_ctrl #(
     parameter type reg_req_t = logic,
     parameter type reg_rsp_t = logic,
     parameter NHARTS = 3
-    //    parameter cei_mochila_pkg::interrupt_type_e INTC_TYPE = cei_mochila_pkg::Intc_Iype
+    //    parameter eros_pkg::interrupt_type_e INTC_TYPE = eros_pkg::Intc_Iype
 ) (
     input logic clk_i,
     input logic rst_ni,
@@ -128,7 +128,7 @@ module safe_wrapper_ctrl #(
 
   logic enable_interrupt;
 
-  //Interrupt 
+  //Interrupt
   assign hw2reg.interrupt_controler.status_interrupt.d = '1;
   assign hw2reg.interrupt_controler.status_interrupt.de = enable_endSW;
   assign enable_interrupt = reg2hw.interrupt_controler.enable_interrupt.q;

@@ -1,0 +1,8 @@
+#Vendor source
+
+package:
+  name: esl_epfl_x_heep
+
+sources:
+    - xbar_varlat_n_to_one.sv
+    - xbar_varlat_one_to_n.sv

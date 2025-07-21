@@ -10,9 +10,9 @@
  * http://www.opensource.org/licenses.
  */
 
-#include "x-heep.h"
-#include "core_v_mini_mcu.h"
-#include "soc_ctrl_regs.h"
+//#include "x-heep.h"
+//#include "core_v_mini_mcu.h"
+//#include "soc_ctrl_regs.h"
 
 #include "base_address.h"
 #include "CPU_Private_regs.h"

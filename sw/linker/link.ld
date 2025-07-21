@@ -20,8 +20,8 @@ MEMORY
   /* Our testbench is a bit weird in that we initialize the RAM (thus
      allowing initialized sections to be placed there). Infact we dump all
      sections to ram. */
-  ram0 (rwxai) : ORIGIN = 0xF0020000, LENGTH = 0x000008000
-  ram1 (rwxai) : ORIGIN = 0xF0028000, LENGTH = 0x000008000
+  ram0 (rwxai) : ORIGIN = 0x19000000 + 0x00020000, LENGTH = 0x000008000
+  ram1 (rwxai) : ORIGIN = 0x19000000 + 0x00028000, LENGTH = 0x000008000
 }
 
 /*
@@ -32,7 +32,7 @@ MEMORY
 SECTIONS
 {
   /* we want a fixed entry point */
-  PROVIDE(__boot_address = 0xF0020180);
+  PROVIDE(__boot_address = 0x19000000 + 0x00020180);
 
   /* stack and heap related settings */
   __stack_size = DEFINED(__stack_size) ? __stack_size : 0x800;

@@ -4,9 +4,10 @@
 // Luis Waucquez (luis.waucquez.jimenez@upm.es)
 
 module obi_sngreg
-  import obi_pkg::*;
   import reg_pkg::*;
 #(
+    parameter type obi_req_t            = logic,
+    parameter type obi_resp_t           = logic  
 ) (
     input logic clk_i,
     input logic rst_ni,
@@ -31,7 +32,7 @@ module obi_sngreg
   assign core_instr_req_o = core_instr_req_ff;
 
   assign clear = (core_instr_req_i.req == 1'b0 & core_instr_resp_gnt_i == 1'b1)  |
-               (core_instr_req_i.req == 1'b0 & core_instr_req_ff.req == 1'b0)  | 
+               (core_instr_req_i.req == 1'b0 & core_instr_req_ff.req == 1'b0)  |
                clear_pipeline; //injects '0' //Todo remove core_instr_resp_rvalid
 
   always_comb begin

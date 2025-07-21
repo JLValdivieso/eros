@@ -5,7 +5,7 @@
 
 
  #include "encoding.h"
-#define SND_SCRATCH 1   
+#define SND_SCRATCH 1
 // The debugger can assume as second scratch register.
 // These are implementation-specific addresses in the Debug Module
 #define HALTED    0x100
@@ -23,7 +23,6 @@
 #include "Safe_wrapper_ctrl_regs.h"
 
 
-
 #################################
 // Region of memory where each hart has 1
 // byte to read.
@@ -32,35 +31,35 @@
 #define FLAG_RESUME 1
 
 #include "encoding.h"
-#define SND_SCRATCH 1   
+#define SND_SCRATCH 1
 
        .option norvc
-       .global entry 
+       .global entry
 entry:
 //       lui   a0, 0xFF000
 //       lw    a0, 0(a0)
-//       lui   a1, 0xF0020  
+//       lui   a1, 0xF0020
 //       lw    a1, 8(a1)
 //       bne    a0, a1, shadow_wfi
-//       lui     a1, 0xF0011 
+//       lui     a1, 0xF0011
 //       lbu     a0, 0(a1)
-//       // Check whether exit_loop flag is 1, otherwise jump back to entry 
+//       // Check whether exit_loop flag is 1, otherwise jump back to entry
 //       beqz   a0, entry
-//       lw     a0, 4(a1) 
+//       lw     a0, 4(a1)
 //       jalr   a0
        nop
        nop
-wfi_entry:  
-       nop 
-       nop  
+wfi_entry:
+       nop
+       nop
        wfi
        j wfi_entry
        nop
        nop
-single_boot: 
-       //Program Counter -> dpc Control & Status Register  
-       lui   a0, %hi(SAFE_WRAPPER_CTRL_BASEADDRESS)  
-       lw    a0, SAFE_WRAPPER_CTRL_ENTRY_ADDRESS_REG_OFFSET(a0)          //Base Address CPU Private Registers        
+single_boot:
+       //Program Counter -> dpc Control & Status Register
+       lui   a0, %hi(SAFE_WRAPPER_CTRL_BASEADDRESS)
+       lw    a0, SAFE_WRAPPER_CTRL_ENTRY_ADDRESS_REG_OFFSET(a0)          //Base Address CPU Private Registers
        csrw dpc, a0
 
        //Resume//
@@ -70,7 +69,7 @@ single_boot:
 //----------------DEBUG ROM PART----------------//
 //----------------------------------------------//
 #include "encoding.h"
-#define SND_SCRATCH 1   
+#define SND_SCRATCH 1
 // The debugger can assume as second scratch register.
 // These are implementation-specific addresses in the Debug Module
 #define HALTED    0x100
@@ -85,7 +84,7 @@ single_boot:
 #define FLAG_RESUME 1
 
 #include "encoding.h"
-#define SND_SCRATCH 1   
+#define SND_SCRATCH 1
 
         // Entry location on ebreak, Halt, or Breakpoint
         // It is the same for all harts. They branch when
@@ -95,15 +94,15 @@ single_boot:
        .global debug_entry
        .global debug_exception
 
-debug_entry: 
+debug_entry:
        csrw CSR_DSCRATCH1, a0       // Save a0 to allow loading arbitrary DM base
        csrw CSR_DSCRATCH0, s0       // Save s0 to allow signaling MHARTID
-       lui   a0, %hi(SAFE_WRAPPER_CTRL_BASEADDRESS)  
+       lui   a0, %hi(SAFE_WRAPPER_CTRL_BASEADDRESS)
        lw    a0, SAFE_WRAPPER_CTRL_EXTERNAL_DEBUG_REQ_REG_OFFSET(a0)          //Base Address CPU Private Registers
 
-       // Check whether debug_ext_req flag is 1, otherwise jump back to halt_switch routine Todo: Choose better way to reduce 
+       // Check whether debug_ext_req flag is 1, otherwise jump back to halt_switch routine Todo: Choose better way to reduce
        //cycles
-       beqz    a0, halt_boot      
+       beqz    a0, halt_boot
        xori     a0 ,a0, 0x2 //Mask applied to see if its Single Debug boot
        beqz     a0, single_boot
 
@@ -117,7 +116,7 @@ debug_entry:
 //        csrw CSR_DSCRATCH1, a0       // Save a0 to allow loading arbitrary DM base
        lui a0, 0x10000             // Load Upper Immediate Base Address of the Debug Module.
        li  s0, 0x10000830
-       jr  s0 
+       jr  s0
        nop
 #endif
 /*
@@ -125,7 +124,7 @@ debug_entry:
         // a DM which was reset is still made aware that a hart is halted.
         // We keep checking both whether there is something the debugger wants
         // us to do, or whether we should resume.
-debug_entry_loop: 
+debug_entry_loop:
         csrr s0, CSR_MHARTID
 #ifdef SND_SCRATCH
         sw   s0, HALTED(a0)
@@ -223,13 +222,13 @@ halt_boot:
        lw   ra, 20(t5)
 
        //x2
-       lw   sp, 24(t5)   
+       lw   sp, 24(t5)
 
        //x3
-       lw   gp, 28(t5)   
+       lw   gp, 28(t5)
 
        //x4
-       lw   tp, 32(t5)     
+       lw   tp, 32(t5)
 
        //**Recovery STACK**/
 
@@ -254,11 +253,11 @@ load_register:
        lw   s1, 52(t5)
 
        //x10
-       lw   a0, 56(t5)   
+       lw   a0, 56(t5)
 
        //x11
-       lw   a1, 60(t5)     
-       
+       lw   a1, 60(t5)
+
        //x12
        lw   a2, 64(t5)
 
@@ -275,14 +274,14 @@ load_register:
        lw   a6, 80(t5)
 
        //x17
-       lw   a7, 84(t5) 
+       lw   a7, 84(t5)
 
        //x18
-       lw   s2, 88(t5)   
+       lw   s2, 88(t5)
 
        //x19
-       lw   s3, 92(t5)     
-       
+       lw   s3, 92(t5)
+
        //x20
        lw   s4, 96(t5)
 
@@ -299,11 +298,11 @@ load_register:
        lw   s8, 112(t5)
 
        //x25
-       lw   s9, 116(t5)   
+       lw   s9, 116(t5)
 
        //x26
-       lw   s10, 120(t5)     
-       
+       lw   s10, 120(t5)
+
        //x27
        lw   s11, 124(t5)
 
@@ -318,19 +317,19 @@ load_register:
        lw   t6, 144(t5)
 
        //Ensure the read data dpc is performed before instruction bus.
-       fence 
-       //Program Counter -> dpc Control & Status Register            
+       fence
+       //Program Counter -> dpc Control & Status Register
        csrw dpc, t6
-       
+
        //x31
-       lw   t6, 140(t5) 
+       lw   t6, 140(t5)
 
        //x30
        lw   t5, 136(t5)
-       
+
        //Resume//
        dret
-       
+
 
        //
        //Loop//
@@ -347,7 +346,7 @@ store_stack:
        fence
        beq  sp, t1, load_register  //Compare addr stack value for sp and base intial sp
        addi t2, t5, 148 //Store addr from beginng of the stack store in the secure place
-load_stack:       
+load_stack:
        lw   t4, 0(t2)
        sw   t4, 0(sp)
        beq  sp, t1, restore_sp  //Compare addr stack value for sp and base intial sp
@@ -357,9 +356,9 @@ load_stack:
        nop
        nop
 restore_sp:
-       lw   sp, 24(t5)  
+       lw   sp, 24(t5)
        j    load_register
-       nop 
+       nop
        nop
 
 
@@ -370,7 +369,7 @@ restore_sp:
 //shadow_wfi:
 //       nop
 //       nop
-//       nop 
+//       nop
 //       wfi
 //       nop
 //       nop

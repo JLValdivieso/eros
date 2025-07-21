@@ -3,10 +3,9 @@
 // SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
 // Luis Waucquez (luis.waucquez.jimenez@upm.es)
 
-module obi_pipelined_delay
-  import obi_pkg::*;
-  import reg_pkg::*;
-#(
+module obi_pipelined_delay #(
+    parameter type obi_req_t            = logic,
+    parameter type obi_resp_t           = logic,
     parameter NDELAY = 2
 ) (
     input logic clk_i,

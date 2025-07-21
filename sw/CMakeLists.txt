@@ -79,7 +79,7 @@ FOREACH(file_path ${new_list})
     SET(add 1)
   elseif( ${file_path} MATCHES "/CB_device/" )
     if(${file_path} MATCHES "/lib/") # Add it if its in Safety
-          SET(add 1)
+      SET(add 1)
     endif()
   endif()
 
@@ -140,6 +140,9 @@ FOREACH(file_path IN LISTS new_list)
         if(${file_path} MATCHES "/AES/") # Add it if its in AES
           SET(add 1)
         endif()
+        if(${file_path} MATCHES "/runtime/") # Add it if its in runtime
+          SET(add 1)
+        endif()
     endif()
   elseif( ( ${file_path} MATCHES "/${PROJECT}/" ) AND ( NOT ${file_path} MATCHES ${MAINFILE} ) )
     SET(add 1)
@@ -167,6 +170,8 @@ if( app_found EQUAL 0 )
   FOREACH(file_path IN LISTS new_list)
     SET(add 0) # This variable is set to 1 if the file_pth needs to be added to the list
     if(${file_path} MATCHES "/device/")
+      SET(add 1)
+    elseif(${file_path} MATCHES "/CB_device/")
       SET(add 1)
     elseif( ( ${file_path} MATCHES "/${PROJECT}/" ) AND ( NOT ${file_path} MATCHES ${MAINFILE} ) )
       SET(add 1)
@@ -425,7 +430,7 @@ if((${LINKER} STREQUAL "flash_load") OR (${LINKER} STREQUAL "flash_exec"))
             COMMENT "Invoking: Hexdump")
 else()
     add_custom_command(TARGET ${MAINFILE}.elf POST_BUILD
-            COMMAND ${CMAKE_OBJCOPY} --adjust-vma=-0xF0020000 -O verilog  ${MAINFILE}.elf  ${MAINFILE}.hex
+            COMMAND ${CMAKE_OBJCOPY} --adjust-vma=-0x19020000 -O verilog  ${MAINFILE}.elf  ${MAINFILE}.hex
             COMMENT "Invoking: Hexdump")
 endif()
 

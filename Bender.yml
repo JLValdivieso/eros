@@ -4,13 +4,26 @@ package:
 
 # Dependencies based on vendor folder
 dependencies:
-  common_cells:        { git: "https://github.com/pulp-platform/common_cells.git",          rev: cf08cc1068e782638185b8316e1ebc0ef90596e7}
-  riscv-dbg:           { git: "https://github.com/pulp-platform/riscv-dbg.git",             rev: 358f90110220adf7a083f8b65d157e836d706236}
-  register_interface:  { git: "https://github.com/pulp-platform/register_interface.git",    rev: e3a4955071fcf554febd4b29a7c7a52c7f1e7fc6}
-  Pulpissimo:          { git: "https://github.com/pulp-platform/pulpissimo.git",            version:                                7.0.0}
-  riscv:               { git: "https://github.com/openhwgroup/cv32e40p.git",                rev: a43277c0dc64c02be3f5d713438f315ecffde2b9}
-  riscv:               { git: "https://github.com/esl-epfl/cv32e40px.git",                  rev: 10b08065c50d44b5355c1535cb8f740e68e4f106}
-  axi_obi:             { path: "vendor/axi_obi"                                                                                          }
+  common_cells:         { git: "https://github.com/pulp-platform/common_cells.git",          rev: cf08cc1068e782638185b8316e1ebc0ef90596e7}
+#  cluster_interconnect: { git: "https://github.com/pulp-platform/cluster_interconnect.git",  version: 1.3.0                              }
+  obi:                  { git: "https://github.com/pulp-platform/obi.git",                   version: 0.1.7                              }
+  riscv-dbg:            { git: "https://github.com/pulp-platform/riscv-dbg.git",             rev: 358f90110220adf7a083f8b65d157e836d706236}
+  register_interface:   { git: "https://github.com/pulp-platform/register_interface.git",    rev: e3a4955071fcf554febd4b29a7c7a52c7f1e7fc6}
+
+#  Pulpissimo:          { git: "https://github.com/pulp-platform/pulpissimo.git",            rev: 4c0f9e754b43cf4aaf0690b2e22c45a4904c3027}
+#  riscv:               { git: "https://github.com/esl-epfl/cv32e40px.git",                  rev: 10b08065c50d44b5355c1535cb8f740e68e4f106}
+  
+#  riscv:               { git: "https://github.com/openhwgroup/cv32e40p.git",                rev: a43277c0dc64c02be3f5d713438f315ecffde2b9}
+  axi:                  { git: "https://github.com/pulp-platform/axi.git",                   version: 0.39.6                              }  
+  axi_mem_if:           { git: "https://github.com/pulp-platform/axi_mem_if.git",            rev: master                                  }
+  
+  register_interface:   { git: "https://github.com/pulp-platform/register_interface.git",    rev: master                                  }
+  axi2apb:              { git: "https://github.com/pulp-platform/axi2apb.git",               rev: master                                  }
+  
+  axi_slice:            { git: "https://github.com/pulp-platform/axi_slice.git",             rev: master                                  }
+
+  cv32e20:              { path: "./vendor/openhwgroup_cv32e20"                                                                            }
+  cluster_interconnect: { path: "./vendor/pulp_platform_cluster_interconnect"                                                             }
 
 sources:
     include_dirs:
@@ -18,12 +31,14 @@ sources:
       #
       # eros
       #
-
     files:
-      - rtl/include/cei_mochila_pkg.sv
       - rtl/include/safe_wrapper_ctrl_reg_pkg.sv
       - rtl/include/cpu_private_reg_pkg.sv
-      - rtl/eros_top.sv
+      - rtl/include/reg_pkg.sv
+      - rtl/include/addr_map_rule_pkg.sv
+      - rtl/include/eros_pkg.sv
+      - rtl/eros_xbar_varlat_n_to_one.sv
+      - rtl/eros_xbar_varlat_one_to_n.sv
       - rtl/cpu_system.sv
       - rtl/bus_system.sv
       - rtl/xbar_system.sv
@@ -41,7 +56,12 @@ sources:
       - rtl/cpu_private_reg_top.sv
       - rtl/cpu_private_reg.sv
       - rtl/lockstep_reg.sv
-      - ip/fpu_ss/fpu_ss_wrapper.sv
+#      - ip/fpu_ss/fpu_ss_wrapper.sv
+      - rtl/eros_top.sv
+      - wrapper/apb_to_obi_wrapper.sv
+      - wrapper/eros_top_wrapper.sv
+      - wrapper/eros_top_wrapper_axi.sv
+
 
       - target: any(simulation,test)
         files:
@@ -50,267 +70,8 @@ sources:
 
       - target: all(vivado,fpga,xilinx)
         files:
-        - fgpa/xilinx_sram.sv
-        - fpga/fpga/cv32e40p_xilinx_clock_gate.sv
-        - fpga/fpga/cv32e40px_xilinx_clock_gate.sv
-        - fpga/fpga/cve2_xilinx_clock_gate.sv
-        - fpga/fpga/prim_xilinx_clk.sv
-
-
-
-# List of vendorized files from external repositories not supporting bender. Optional.
-vendor_package:
-
-    # package name
-  - name: openhwgroup_cv32e20
-    # target directory
-    target_dir: vendor/openhwgroup_cv32e20
-    # upstream dependency (i.e. git repository similar to dependencies, only supports commit hash)
-    upstream: { git: "https://github.com/openhwgroup/cve2.git", rev: "7472bc1ce39544000b8fe08068e6e50e6ff1a202"}
-
-    # paths to exclude from upstream dependency. Paths that also match a pattern in include_from_upstream are excluded. Optional.
-    exclude_from_upstream:
-      - "ci/*"
-      - "dv/*"
-      - "examples"
-      - "formal"
-      - ".dir-locals.el"
-      - "doc"
-      - "shared"
-      - "syn"
-      - "util"
-      - "scripts"
-      - "vendor/eembc_coremark"
-      - "vendor/eembc_coremark.lock.hjson"
-      - "vendor/google_riscv-dv"
-      - "vendor/google_riscv-dv.lock.hjson"
-      - "vendor/google_riscv-dv.vendor.hjson"
-      - "vendor/lowrisc_ip.lock.hjson"
-      - "vendor/lowrisc_ip.vendor.hjson"
-      - "vendor/patches"
-      - "vendor/lowrisc_ip/ip"
-      - "vendor/lowrisc_ip/lint"
-      - "vendor/lowrisc_ip/util"
-      - "vendor/lowrisc_ip/dv/tools"
-      - "vendor/lowrisc_ip/dv/verilator"
-      - "vendor/lowrisc_ip/dv/sv/common_ifs"
-      - "vendor/lowrisc_ip/dv/sv/csr_utils"
-      - "vendor/lowrisc_ip/dv/sv/dv_base_reg"
-      - "vendor/lowrisc_ip/dv/sv/dv_lib"
-      - "vendor/lowrisc_ip/dv/sv/mem_bkdr_util"
-      - "vendor/lowrisc_ip/dv/sv/mem_model"
-      - "vendor/lowrisc_ip/dv/sv/str_utils"
-      - ".github"
-      - "azure-pipelines.yml"
-      - "check_tool_requirements.core"
-      - ".clang-format"
-      - "CONTRIBUTING.md"
-      - "CREDITS.md"
-      - ".gitignore"
-      - "ibex_configs.yaml"
-      - "LICENSE"
-      - "Makefile"
-      - "python-requirements.txt"
-      - "README.md"
-      - "src_files.yml"
-      - ".svlint.toml"
-      - "ibex_icache.core"
-      - "ibex_multdiv.core"
-      - "ibex_top.core"
-      - "ibex_top_tracing.core"
-      - "ibex_tracer.core"
-      - "tool_requirements.py"
-    # directory containing patch files. Optional.
-    patch_dir: "vendor/patches/openhwgroup_cv32e20"
-    # custom file mapping from remote repository to local repository, with optional patch_dir containing patches. Optional. Note: mappings make upstreaming patches slightly more complicated. Avoid if not necessary.
-
-    sources:
-
-      include_dirs:
-        - rtl/cve2_pmp_reset_default.svh
-
-      files:
-        - rtl/cve2_pkg.sv
-        - rtl/cve2_alu.sv
-        - rtl/cve2_branch_predict.sv
-        - rtl/cve2_compressed_decoder.sv
-        - rtl/cve2_controller.sv
-        - rtl/cve2_cs_registers.sv
-        - rtl/cve2_csr.sv
-        - rtl/cve2_counters.sv
-        - rtl/cve2_decoder.sv
-        - rtl/cve2_ex_block.sv
-        - rtl/cve2_fetch_fifo.sv
-        - rtl/cve2_id_stage.sv
-        - rtl/cve2_if_stage.sv
-        - rtl/cve2_wb.sv
-        - rtl/cve2_icache.sv
-        - rtl/cve2_load_store_unit.sv
-        - rtl/cve2_multdiv_slow.sv
-        - rtl/cve2_multdiv_fast.sv
-        - rtl/cve2_prefetch_buffer.sv
-        - rtl/cve2_fetch_fifo.sv
-        - rtl/cve2_pmp.sv
-        - rtl/cve2_core.sv
-        - shared/rtl/prim_assert.sv
-        - rtl/cve2_tracer_pkg.sv
-        - rtl/cve2_tracer.sv
-        - rtl/cve2_core_tracing.sv
-        - rtl/cve2_top.sv
-        - rtl/cve2_pmp_reset_default.svh
-#    - rtl/cve2_register_file_fpga.sv
-        - rtl/cve2_register_file_ff.sv # generic FF-based
-
-        - target: any(simulation,test)
-          files:
-          - bhv/cve2_sim_clock_gate.sv
-
-
-##
-##  lowriscv_opentitan
-##
-    # package name
-  - name: lowriscv_opentitan
-    # target directory
-    target_dir: vendor/lowriscv_opentitan
-    # upstream dependency (i.e. git repository similar to dependencies, only supports commit hash)
-    upstream: { git: "https://github.com/lowRISC/opentitan.git", rev: "47a0f4798febd9e53dd131ef8c8c2b0255d8c139"}
-
-    # paths to exclude from upstream dependency. Paths that also match a pattern in include_from_upstream are excluded. Optional.
-    exclude_from_upstream:
-      - "apt-requirements.txt"
-      - "azure-pipelines.yml"
-      - "check_tool_requirements.core"
-      - "ci"
-      - "CLA"
-      - "COMMITTERS"
-      - "CONTRIBUTING.md"
-      - "doc"
-      - "_index.md"
-      - "LICENSE"
-      - "meson.build"
-      - "meson_init.sh"
-      - "meson_options.txt"
-      - "python-requirements.txt"
-      - "README.md"
-      - "site"
-      - "sw"
-      - "test"
-      - "toolchain.txt"
-      - "tool_requirements.py"
-      - "topgen.core"
-      - "topgen-generator.core"
-      - "topgen-reg-only.core"
-      - "yum-requirements.txt"
-      - "hw/data"
-      - "hw/dv/doc"
-      - "hw/dv/_index.md"
-      - "hw/dv/sv"
-      - "hw/dv/tools"
-      - "hw/dv/verilator"
-      - "hw/dv/dpi/common"
-      - "hw/dv/dpi/dmidpi"
-      - "hw/dv/dpi/gpiodpi"
-      - "hw/dv/dpi/jtagdpi"
-      - "hw/dv/dpi/spidpi"
-      - "hw/dv/dpi/usbdpi"
-      - "hw/formal"
-      - "hw/_index.md"
-      - "hw/Makefile"
-      - "hw/syn"
-      - "hw/top_earlgrey/BUILD"
-      - "hw/top_earlgrey/_index.md"
-      - "hw/top_earlgrey/cdc"
-      - "hw/top_earlgrey/chip_earlgrey_asic.core"
-      - "hw/top_earlgrey/chip_earlgrey_cw310.core"
-      - "hw/top_earlgrey/chip_earlgrey_nexysvideo.core"
-      - "hw/top_earlgrey/chip_earlgrey_verilator.cc"
-      - "hw/top_earlgrey/chip_earlgrey_verilator.core"
-      - "hw/top_earlgrey/clkgen_xil7series.core"
-      - "hw/top_earlgrey/data"
-      - "hw/top_earlgrey/doc"
-      - "hw/top_earlgrey/dv"
-      - "hw/top_earlgrey/formal"
-      - "hw/top_earlgrey/ip"
-      - "hw/top_earlgrey/ip_autogen"
-      - "hw/top_earlgrey/lint"
-      - "hw/top_earlgrey/padring.core"
-      - "hw/top_earlgrey/physical_pads.core"
-      - "hw/top_earlgrey/scan_role_pkg.core"
-      - "hw/top_earlgrey/sw"
-      - "hw/top_earlgrey/syn"
-      - "hw/top_earlgrey/top_earlgrey.core"
-      - "hw/top_earlgrey/top_earlgrey_pkg.core"
-      - "hw/top_earlgrey/util"
-      - "hw/top_earlgrey/rtl/autogen"
-      - "hw/top_earlgrey/rtl/chip_earlgrey_verilator.sv"
-      - "hw/top_earlgrey/rtl/clkgen_xil7series.sv"
-      - "hw/top_earlgrey/rtl/padring.sv"
-      - "hw/top_earlgrey/rtl/physical_pads.sv"
-      - "hw/top_earlgrey/rtl/scan_role_pkg.sv"
-      - "hw/top_englishbreakfast"
-      - "hw/vendor"
-      - "hw/ip/_index.md"
-      - "hw/ip/adc_ctrl"
-      - "hw/ip/aes"
-      - "hw/ip/alert_handler"
-      - "hw/ip/aon_timer"
-      - "hw/ip/clkmgr"
-      - "hw/ip/csrng"
-      - "hw/ip/edn"
-      - "hw/ip/entropy_src"
-      - "hw/ip/flash_ctrl"
-      - "hw/ip/gpio/doc"
-      - "hw/ip/gpio/dv"
-      - "hw/ip/hmac"
-      - "hw/ip/i2c/doc"
-      - "hw/ip/i2c/dv"
-      - "hw/ip/_index"
-      - "hw/ip/keymgr"
-      - "hw/ip/kmac"
-      - "hw/ip/lc_ctrl"
-      - "hw/ip/nmi_gen"
-      - "hw/ip/otbn"
-      - "hw/ip/otp_ctrl"
-      - "hw/ip/pattgen"
-      - "hw/ip/pinmux"
-      - "hw/ip/prim_xilinx"
-      - "hw/ip/pwm"
-      - "hw/ip/pwrmgr"
-      - "hw/ip/rom_ctrl"
-      - "hw/ip/rstmgr"
-      - "hw/ip/rv_core_ibex"
-      - "hw/ip/rv_dm"
-      - "hw/ip/spi_host"
-      - "hw/ip/sram_ctrl"
-      - "hw/ip/sysrst_ctrl"
-      - "hw/ip/trial1"
-      - "hw/ip/usbdev"
-      - "hw/ip/usb_fs_nb_pe"
-      - "hw/ip/usbuart"
-      - "hw/ip/gpio"
-      - "hw/ip/prim/lint/prim_pad_wrapper.waiver"
-      - "hw/ip/prim/prim_pad_attr.core"
-      - "hw/ip/prim/prim_pad_wrapper.core"
-      - "hw/ip/prim/prim_pad_wrapper_pkg.core"
-      - "hw/ip/prim/rtl/prim_pad_wrapper_pkg.sv"
-      - "hw/ip/prim_generic/lint/prim_generic_pad_wrapper.waiver"
-      - "hw/ip/prim_generic/prim_generic_pad_attr.core"
-      - "hw/ip/prim_generic/prim_generic_pad_wrapper.core"
-      - "hw/ip/prim_generic/rtl/prim_generic_pad_attr.sv"
-      - "hw/ip/prim_generic/rtl/prim_generic_pad_wrapper.sv"
-    # directory containing patch files. Optional.
-    patch_dir: "vendor/patches/openhwgroup_cv32e20"
-    # custom file mapping from remote repository to local repository, with optional patch_dir containing patches. Optional. Note: mappings make upstreaming patches slightly more complicated. Avoid if not necessary.
-    sources:
-      include_dirs:
-        - hw/ip/prim/rtl/prim_assert_dummy_macros.svh
-        - hw/ip/prim/rtl/prim_assert_standard_macros.svh
-        - hw/ip/prim/rtl/prim_assert_yosys_macros.svh
-
-      files:
-      - hw/ip/prim/rtl/prim_assert_dummy_macros.svh
-      - hw/ip/prim/rtl/prim_assert_standard_macros.svh
-      - hw/ip/prim/rtl/prim_assert_yosys_macros.svh
-      - hw/ip/prim/rtl/prim_assert.sv
-
+        - fpga/xilinx_sram.sv
+        - fpga/cv32e40p_xilinx_clock_gate.sv
+        - fpga/cv32e40px_xilinx_clock_gate.sv
+        - fpga/cve2_xilinx_clock_gate.sv
+        - fpga/prim_xilinx_clk.sv

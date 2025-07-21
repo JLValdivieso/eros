@@ -3,10 +3,9 @@
 // SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
 // Luis Waucquez (luis.waucquez.jimenez@upm.es)
 
-module lockstep_reg
-  import obi_pkg::*;
-  import reg_pkg::*;
-#(
+module lockstep_reg #(
+    parameter type obi_req_t            = logic,
+    parameter type obi_resp_t           = logic,
     parameter NCYCLES = 2
 ) (
     input logic clk_i,
@@ -42,7 +41,10 @@ module lockstep_reg
     if (i == 0) begin
       if (NCYCLES == 1) begin
         // Instruction
-        obi_sngreg obi_sngreg0_i (
+        obi_sngreg #(
+            .obi_req_t            (obi_req_t  ),
+            .obi_resp_t           (obi_resp_t )
+        )obi_sngreg0_i (
             .clk_i,
             .rst_ni,
             .clear_pipeline       (~enable_i),
@@ -53,7 +55,10 @@ module lockstep_reg
         );
 
         // Data
-        obi_sngreg obi_sngreg1_i (
+        obi_sngreg #(
+            .obi_req_t            (obi_req_t  ),
+            .obi_resp_t           (obi_resp_t )
+        )obi_sngreg1_i (
             .clk_i,
             .rst_ni,
             .clear_pipeline       (~enable_i),
@@ -65,6 +70,8 @@ module lockstep_reg
 
       end else begin
         obi_pipelined_delay #(
+            .obi_req_t            (obi_req_t  ),
+            .obi_resp_t           (obi_resp_t ),
             .NDELAY(NCYCLES)
         ) obi_pipelined_delay0_i (
             .clk_i,
@@ -78,6 +85,8 @@ module lockstep_reg
 
         // Data
         obi_pipelined_delay #(
+            .obi_req_t            (obi_req_t  ),
+            .obi_resp_t           (obi_resp_t ),
             .NDELAY(NCYCLES)
         ) obi_pipelined_delay1_i (
             .clk_i,

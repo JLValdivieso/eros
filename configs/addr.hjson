@@ -1,0 +1,14 @@
+#Put the configuration of the base address
+
+CSR: {
+  BaseAddress: 0x20000000  #Base address for internal Control & Status Registers
+}
+
+SystemBus: {
+  BaseAddress: 0x19000000  #Base address for OBI system bus
+}
+
+MMAcceleratorOrExternalBus: {
+  BaseAddress: 0x19002000   #Base address of the accelerator or external bus, in case of MM accelerator use the same base address of the SystemBus + offset check eros package to avoid conflicts
+  Size: 0x00001000          # Memory space size
+}
