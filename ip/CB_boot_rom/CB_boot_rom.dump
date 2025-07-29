@@ -17,8 +17,8 @@ Disassembly of section .text:
   1c:	00000013          	nop
 
 00000020 <single_boot>:
-  20:	20000537          	lui	a0,0x20000
-  24:	02452503          	lw	a0,36(a0) # 20000024 <restore_sp+0x1ffffe8c>
+  20:	20070537          	lui	a0,0x20070
+  24:	02452503          	lw	a0,36(a0) # 20070024 <restore_sp+0x2006fe8c>
   28:	7b151073          	csrw	dpc,a0
   2c:	7b200073          	dret
   30:	0000                	unimp
@@ -41,8 +41,8 @@ Disassembly of section .text:
 00000050 <debug_entry>:
   50:	7b351073          	csrw	dscratch1,a0
   54:	7b241073          	csrw	dscratch0,s0
-  58:	20000537          	lui	a0,0x20000
-  5c:	01852503          	lw	a0,24(a0) # 20000018 <restore_sp+0x1ffffe80>
+  58:	20070537          	lui	a0,0x20070
+  5c:	01852503          	lw	a0,24(a0) # 20070018 <restore_sp+0x2006fe80>
   60:	02050463          	beqz	a0,88 <halt_boot>
   64:	00254513          	xori	a0,a0,2
   68:	00051463          	bnez	a0,70 <debug_entry+0x20>
@@ -55,8 +55,8 @@ Disassembly of section .text:
   84:	00000013          	nop
 
 00000088 <halt_boot>:
-  88:	20000f37          	lui	t5,0x20000
-  8c:	028f2f03          	lw	t5,40(t5) # 20000028 <restore_sp+0x1ffffe90>
+  88:	20070f37          	lui	t5,0x20070
+  8c:	028f2f03          	lw	t5,40(t5) # 20070028 <restore_sp+0x2006fe90>
   90:	000f2f83          	lw	t6,0(t5)
   94:	300f9073          	csrw	mstatus,t6
   98:	004f2f83          	lw	t6,4(t5)
@@ -71,8 +71,8 @@ Disassembly of section .text:
   bc:	018f2103          	lw	sp,24(t5)
   c0:	01cf2183          	lw	gp,28(t5)
   c4:	020f2203          	lw	tp,32(t5)
-  c8:	200002b7          	lui	t0,0x20000
-  cc:	0342a303          	lw	t1,52(t0) # 20000034 <restore_sp+0x1ffffe9c>
+  c8:	200702b7          	lui	t0,0x20070
+  cc:	0342a303          	lw	t1,52(t0) # 20070034 <restore_sp+0x2006fe9c>
   d0:	0ff0000f          	fence
   d4:	08031a63          	bnez	t1,168 <store_stack>
 

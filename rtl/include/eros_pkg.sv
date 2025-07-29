@@ -52,8 +52,8 @@ package eros_pkg;
   localparam SYSTEM_XBAR_NMASTER = 7;
   localparam SYSTEM_XBAR_NSLAVE = 5; /*1 ERROR / 2 INTERNAL_PERIPH / 3 EXTERNAL_PERIPH* / 4 RAM0 / 5 RAM1 */
 
-  localparam GLOBAL_BASE_ADDRESS = 32'h19000000;
-  localparam SAFE_CSR_BASE_ADDRESS = 32'h20000000; /*core_v_mini_mcu_pkg::EXT_PERIPHERAL_START_ADDRESS;*/
+  localparam GLOBAL_BASE_ADDRESS = 32'hF0000000;
+  localparam SAFE_CSR_BASE_ADDRESS = 32'h20070000; /*core_v_mini_mcu_pkg::EXT_PERIPHERAL_START_ADDRESS;*/
 
 
   localparam int unsigned MEM_SIZE = 32'h00010000;
@@ -103,8 +103,8 @@ package eros_pkg;
   localparam logic [31:0] PERIPHERAL_END_ADDRESS = PERIPHERAL_START_ADDRESS + PERIPHERAL_SIZE;
   localparam logic [31:0] PERIPHERAL_IDX = 32'd1;
 
-  localparam logic [31:0] EXTERNAL_PERIPHERAL_START_ADDRESS = 32'h19002000;/*X-HEEP VERSION32'h00000000;*/
-  localparam logic [31:0] EXTERNAL_PERIPHERAL_SIZE = 32'h00001000;/*X-HEEP VERSION32'h41000000;*/
+  localparam logic [31:0] EXTERNAL_PERIPHERAL_START_ADDRESS = 32'h00000000;/*X-HEEP VERSION32'h00000000;*/
+  localparam logic [31:0] EXTERNAL_PERIPHERAL_SIZE = 32'h41000000;/*X-HEEP VERSION32'h41000000;*/
   localparam logic [31:0] EXTERNAL_PERIPHERAL_END_ADDRESS = EXTERNAL_PERIPHERAL_START_ADDRESS + EXTERNAL_PERIPHERAL_SIZE;
   localparam logic [31:0] EXTERNAL_PERIPHERAL_IDX = 32'd2;
 
@@ -123,7 +123,7 @@ package eros_pkg;
 //  localparam logic [31:0] SAFE_CPU_REGISTER_END_ADDRESS = SAFE_CPU_REGISTER_START_ADDRESS + SAFE_CPU_REGISTER_SIZE;
 //  localparam logic [31:0] SAFE_CPU_REGISTER_IDX = 32'd5;
 
-  localparam GLOBAL_END_ADDRESS = MEMORY_RAM1_END_ADDRESS;
+  localparam GLOBAL_END_ADDRESS = GLOBAL_BASE_ADDRESS + MEMORY_RAM1_END_ADDRESS;
 
   localparam addr_map_rule_t [SYSTEM_XBAR_NSLAVE-1:0] XBAR_ADDR_RULES = '{
       '{idx: ERROR_IDX, start_addr: ERROR_START_ADDRESS, end_addr: ERROR_END_ADDRESS},
@@ -187,9 +187,9 @@ package eros_pkg;
 
 
   localparam addr_map_rule_t [0:0] CPU_XBAR_ADDR_RULES = '{
-            '{  
-                idx: CPU_REG_IDX, 
-                start_addr: CPU_REG_START_ADDRESS, 
+            '{
+                idx: CPU_REG_IDX,
+                start_addr: CPU_REG_START_ADDRESS,
                 end_addr: CPU_REG_END_ADDRESS
             }
   };
