@@ -35,9 +35,17 @@ TARGET   	?= sim
 # Arch options are any RISC-V ISA string supported by the CPU. Default 'rv32imc'
 ARCH     ?= rv32imfc
 
-# Default FPGA 
+# Default FPGA
 FPGA_BOARD 	?= pynq-z2
 
+# EROS CONFIGS PATH
+EROS_ADDR_CONFIG ?= configs/addr.hjson
+
+##HW
+#Generate EROS
+
+eros-gen:
+	python3 ./util/eros_gen.py --addr_config $(EROS_ADDR_CONFIG)
 
 ##SW
 
@@ -47,9 +55,9 @@ FPGA_BOARD 	?= pynq-z2
 #Core X-HEEP SoC
 app-xheep:
 	cd ./hw/vendor/esl_epfl_x_heep; \
-	$(MAKE) app 
+	$(MAKE) app
 
-#Core CB-Heep 
+#Core CB-Heep
 # CORE ?=0
 app-cbcore: app-restore
 	$(MAKE) -C sw PROJECT=$(PROJECT) TARGET=$(TARGET) LINKER=$(LINKER) COMPILER=$(COMPILER) COMPILER_PREFIX=$(COMPILER_PREFIX) ARCH=$(ARCH)

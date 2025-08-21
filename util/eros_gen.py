@@ -71,7 +71,12 @@ def process_template(template_path: Path, cfg: dict):
 
 
 def main():
-    config_path = Path('configs/addr.hjson')
+    import argparse
+    parser = argparse.ArgumentParser(description="Generate SV, LD, H files from config")
+    parser.add_argument("--addr_config", required=True, help="Path to HJSON configuration file")
+    args = parser.parse_args()
+
+    config_path = Path(args.addr_config)
     if not config_path.is_file():
         print(f"Error: config file not found at {config_path}", file=sys.stderr)
         sys.exit(1)
