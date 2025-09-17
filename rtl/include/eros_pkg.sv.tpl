@@ -21,6 +21,7 @@ package eros_pkg;
   } interrupt_type_e;
 
   localparam interrupt_type_e Intc_Iype = EDGE;
+  localparam XInterface = 1;
 
   //CPU TYPE
   typedef enum logic [1:0] {

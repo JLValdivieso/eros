@@ -151,7 +151,7 @@ module safe_FSM #(
   ////////////////////////////////////////////////////////////////////////////////
   //    _____ ______ _   _ ______ _____            _       ______ _____ __  __  //
   //   / ____|  ____| \ | |  ____|  __ \     /\   | |     |  ____/ ____|  \/  | //
-  //  | |  __| |__  |  \| | |__  | |__) |   /  \  | |     | |__ | (___ | \  / | // 
+  //  | |  __| |__  |  \| | |__  | |__) |   /  \  | |     | |__ | (___ | \  / | //
   //  | | |_ |  __| | . ` |  __| |  _  /   / /\ \ | |     |  __| \___ \| |\/| | //
   //  | |__| | |____| |\  | |____| | \ \  / ____ \| |____ | |    ____) | |  | | //
   //   \_____|______|_| \_|______|_|  \_\/_/    \_\______||_|   |_____/|_|  |_| //
@@ -259,14 +259,14 @@ module safe_FSM #(
         ctrl_single_fsm_ns = SINGLE_IDLE;
       end
       SINGLE_IDLE: begin
-        if(ctrl_safe_fsm_cs == SINGLE_MODE && Start_i == 1'b1 && End_sw_routine_i == 1'b0 
+        if(ctrl_safe_fsm_cs == SINGLE_MODE && Start_i == 1'b1 && End_sw_routine_i == 1'b0
               && (Switch_TMRtoSingle_s[0] == 1'b0 && Switch_TMRtoSingle_s[1] == 1'b0 && Switch_TMRtoSingle_s[2] == 1'b0)
               && (Switch_DMRtoSingle_s[0] == 1'b0 && Switch_DMRtoSingle_s[1] == 1'b0 && Switch_DMRtoSingle_s[2] == 1'b0))
           ctrl_single_fsm_ns = SINGLE_START;
-        else if (ctrl_safe_fsm_cs == SINGLE_MODE && Start_i == 1'b1 && End_sw_routine_i == 1'b0 && (Switch_TMRtoSingle_s[0] == 1'b1 
+        else if (ctrl_safe_fsm_cs == SINGLE_MODE && Start_i == 1'b1 && End_sw_routine_i == 1'b0 && (Switch_TMRtoSingle_s[0] == 1'b1
               || Switch_TMRtoSingle_s[1] == 1'b1 || Switch_TMRtoSingle_s[2] == 1'b1))
           ctrl_single_fsm_ns = SINGLE_RUN;
-        else if (ctrl_safe_fsm_cs == SINGLE_MODE && Start_i == 1'b1 && End_sw_routine_i == 1'b0 && (Switch_DMRtoSingle_s[0] == 1'b1 
+        else if (ctrl_safe_fsm_cs == SINGLE_MODE && Start_i == 1'b1 && End_sw_routine_i == 1'b0 && (Switch_DMRtoSingle_s[0] == 1'b1
               || Switch_DMRtoSingle_s[1] == 1'b1 || Switch_DMRtoSingle_s[2] == 1'b1))
           ctrl_single_fsm_ns = SINGLE_RUN;
         else ctrl_single_fsm_ns = SINGLE_IDLE;
@@ -392,7 +392,7 @@ module safe_FSM #(
         end
 
         TMR_SH_HALT: begin
-          if (Master_Core_i[i] == 1'b1 && ((Halt_ack_i[0] && Halt_ack_i[1]) || (Halt_ack_i[1] && Halt_ack_i[2]) 
+          if (Master_Core_i[i] == 1'b1 && ((Halt_ack_i[0] && Halt_ack_i[1]) || (Halt_ack_i[1] && Halt_ack_i[2])
                 || (Halt_ack_i[0] && Halt_ack_i[2])) == 1'b1)
             ctrl_tmr_fsm_ns[i] = TMR_WAIT_SH;
           else if (Master_Core_i[i] == 1'b0 && Halt_ack_i[i] == 1'b1)
@@ -784,7 +784,7 @@ module safe_FSM #(
 
   assign en_ext_debug_req_o = en_safe_ext_debug_req_s | en_single_ext_debug_req_s;
 
-  assign Start_Boot_o = Single_Boot_s | TMR_Boot_s[0] | TMR_Boot_s[1] | TMR_Boot_s[2] | 
+  assign Start_Boot_o = Single_Boot_s | TMR_Boot_s[0] | TMR_Boot_s[1] | TMR_Boot_s[2] |
                       DMR_Boot_s[0] | DMR_Boot_s[1] | DMR_Boot_s[2];
 
   assign Dmr_config_o = dmr_dmr_config_s;
@@ -801,7 +801,7 @@ module safe_FSM #(
       tmr_error_ff <= '0;
     end else begin
       tmr_error_ff[0] <= tmr_error_i;
-      if ((ctrl_tmr_fsm_cs[0] == TMR_SYNC || ctrl_tmr_fsm_cs[1] == TMR_SYNC || ctrl_tmr_fsm_cs[2] == TMR_SYNC)&& 
+      if ((ctrl_tmr_fsm_cs[0] == TMR_SYNC || ctrl_tmr_fsm_cs[1] == TMR_SYNC || ctrl_tmr_fsm_cs[2] == TMR_SYNC)&&
                                       (tmr_error_i) && (~tmr_error_ff[0]))
         tmr_error_ff[1] <= ~tmr_error_ff[1];
       else if (ctrl_tmr_fsm_cs[0] != TMR_SYNC || ctrl_tmr_fsm_cs[1] != TMR_SYNC || ctrl_tmr_fsm_cs[2] != TMR_SYNC)
@@ -809,7 +809,7 @@ module safe_FSM #(
     end
   end
 
-  assign tmr_error_s = (~tmr_critical_section_i & (tmr_error_i | tmr_error_ff[1])) | (tmr_critical_section_i & 
+  assign tmr_error_s = (~tmr_critical_section_i & (tmr_error_i | tmr_error_ff[1])) | (tmr_critical_section_i &
                                                                     (~tmr_error_ff[0]) & tmr_error_ff[1] & tmr_error_i);
   //####################//
 endmodule

@@ -5,6 +5,8 @@
 
 module cpu_system
   import eros_pkg::*;
+  import cvxif_instr_pkg::*;
+  `include "cvxif_types.svh"
 //  import fpu_ss_pkg::*;
 #(
     parameter type obi_req_t            = logic,
@@ -62,7 +64,58 @@ module cpu_system
   assign core_instr_req_o[2].wdata = '0;
   assign core_instr_req_o[2].we    = '0;
   assign core_instr_req_o[2].be    = 4'b1111;
-/*
+
+  // eXtension Interface
+  //   if_xif #() ext_if ();
+  // CVXIF Configuration
+  typedef struct packed {
+    int unsigned X_NUM_RS;
+    int unsigned X_DUALREAD;
+    int unsigned X_DUALWRITE;
+    int unsigned X_ID_WIDTH;
+    int unsigned X_HARTID_WIDTH;
+    int unsigned X_RFR_WIDTH;
+    int unsigned X_RFW_WIDTH;
+  } CVE2Cfg_t;
+
+  localparam CVE2Cfg_t CVE2Cfg = '{
+      cve2_pkg::X_NUM_RS,
+      cve2_pkg::X_DUAL_READ,
+      cve2_pkg::X_DUAL_WRITE,
+      cve2_pkg::X_ID_WIDTH,
+      cve2_pkg::X_HARTID_WIDTH,
+      cve2_pkg::X_RFR_WIDTH,
+      cve2_pkg::X_RFW_WIDTH
+  };
+
+  // CVXIF Types
+  typedef `READREGFLAGS_T(CVE2Cfg) readregflags_t;
+  typedef `WRITEREGFLAGS_T(CVE2Cfg) writeregflags_t;
+  typedef `ID_T(CVE2Cfg) id_t;
+  typedef `HARTID_T(CVE2Cfg) hartid_t;
+
+  // typedef `X_COMPRESSED_REQ_T(CVE2Cfg, hartid_t) x_compressed_req_t;
+  // typedef `X_COMPRESSED_RESP_T(CVE2Cfg)          x_compressed_resp_t;
+  typedef `X_ISSUE_REQ_T(CVE2Cfg, hartid_t, id_t) x_issue_req_t;
+  typedef `X_ISSUE_RESP_T(CVE2Cfg, writeregflags_t, readregflags_t) x_issue_resp_t;
+  typedef `X_REGISTER_T(CVE2Cfg, hartid_t, id_t, readregflags_t) x_register_t;
+  typedef `X_COMMIT_T(CVE2Cfg, hartid_t, id_t) x_commit_t;
+  typedef `X_RESULT_T(CVE2Cfg, hartid_t, id_t, writeregflags_t) x_result_t;
+
+  // typedef `CVXIF_REQ_T(CVE2Cfg, x_compressed_req_t, x_issue_req_t, x_register_t, x_commit_t) cvxif_req_t;
+  // typedef `CVXIF_RESP_T(CVE2Cfg, x_compressed_resp_t, x_issue_resp_t, x_result_t)            cvxif_resp_t;
+
+  typedef `CVXIF_REQ_T(CVE2Cfg, x_issue_req_t, x_register_t, x_commit_t) cvxif_req_t;
+  typedef `CVXIF_RESP_T(CVE2Cfg, x_issue_resp_t, x_result_t) cvxif_resp_t;
+
+  // CVXIF Interface
+  cvxif_req_t  cvxif_req;
+  cvxif_resp_t cvxif_resp;
+
+
+
+
+  /*
   if (CPU == CV32E40P) begin : gen_eros_cv32e40p
     cv32e40p_top #(
         .COREV_PULP      (0),
@@ -627,53 +680,121 @@ module cpu_system
 /*
   end else begin : gen_eros_cv32e20
 */
-    // instantiate the core 0
-    cve2_top #() cv32e20_core0 (
-        .clk_i (clk_i),
-        .rst_ni(rst_ni),
+  // instantiate the core 0
+  cve2_top #(
+      .XInterface(eros_pkg::XInterface)
+  ) cv32e20_core0 (
+    .clk_i (clk_i),
+    .rst_ni(rst_ni),
 
-        .test_en_i(1'b0),
-        .ram_cfg_i('0),
+    .test_en_i(1'b0),
+    .ram_cfg_i('0),
 
-        .hart_id_i  (HARTID),
-        .boot_addr_i(BOOT_ADDR),
+    .hart_id_i  (HARTID),
+    .boot_addr_i(BOOT_ADDR),
 
-        .instr_addr_o  (core_instr_req_o[0].addr),
-        .instr_req_o   (core_instr_req_o[0].req),
-        .instr_rdata_i (core_instr_resp_i[0].rdata),
-        .instr_gnt_i   (core_instr_resp_i[0].gnt),
-        .instr_rvalid_i(core_instr_resp_i[0].rvalid),
-        .instr_err_i   (1'b0),
+    .instr_addr_o  (core_instr_req_o[0].addr),
+    .instr_req_o   (core_instr_req_o[0].req),
+    .instr_rdata_i (core_instr_resp_i[0].rdata),
+    .instr_gnt_i   (core_instr_resp_i[0].gnt),
+    .instr_rvalid_i(core_instr_resp_i[0].rvalid),
+    .instr_err_i   (1'b0),
 
-        .data_addr_o  (core_data_req_o[0].addr),
-        .data_wdata_o (core_data_req_o[0].wdata),
-        .data_we_o    (core_data_req_o[0].we),
-        .data_req_o   (core_data_req_o[0].req),
-        .data_be_o    (core_data_req_o[0].be),
-        .data_rdata_i (core_data_resp_i[0].rdata),
-        .data_gnt_i   (core_data_resp_i[0].gnt),
-        .data_rvalid_i(core_data_resp_i[0].rvalid),
-        .data_err_i   (1'b0),
+    .data_addr_o  (core_data_req_o[0].addr),
+    .data_wdata_o (core_data_req_o[0].wdata),
+    .data_we_o    (core_data_req_o[0].we),
+    .data_req_o   (core_data_req_o[0].req),
+    .data_be_o    (core_data_req_o[0].be),
+    .data_rdata_i (core_data_resp_i[0].rdata),
+    .data_gnt_i   (core_data_resp_i[0].gnt),
+    .data_rvalid_i(core_data_resp_i[0].rvalid),
+    .data_err_i   (1'b0),
 
-        .irq_software_i('0),
-        .irq_timer_i   ('0),
-        .irq_external_i('0),
-        .irq_fast_i    (intc_core0[31:16]),
-        .irq_nm_i      (1'b0),
+    // Core-V Extension Interface (CV-X-IF)
+    // Issue Interface
+    .x_issue_valid_o(cvxif_req.issue_valid),
+    .x_issue_ready_i(cvxif_resp.issue_ready),
+    .x_issue_req_o(cvxif_req.issue_req),
+    .x_issue_resp_i(cvxif_resp.issue_resp),
 
-        .debug_req_i(debug_req_i[0]),
-        .crash_dump_o(),
-        .debug_halted_o(debug_mode_o[0]),
-        .dm_halt_addr_i(DM_HALTADDRESS),
-        .dm_exception_addr_i('0),
+    // Register Interface
+    .x_register_o(cvxif_req.register),
 
-        .fetch_enable_i(fetch_enable),
-        .core_sleep_o  (sleep_o[0])
-    );
+    // Commit Interface
+    .x_commit_valid_o(cvxif_req.commit_valid),
+    .x_commit_o(cvxif_req.commit),
 
+    // Result Interface
+    .x_result_valid_i(cvxif_resp.result_valid),
+    .x_result_ready_o(cvxif_req.result_ready),
+    .x_result_i(cvxif_resp.result),
+
+    .irq_software_i('0),
+    .irq_timer_i   ('0),
+    .irq_external_i('0),
+
+    .irq_fast_i    (intc_core0[31:16]),
+    .irq_nm_i      (1'b0),
+
+    .debug_req_i(debug_req_i[0]),
+    .crash_dump_o(),
+    .debug_halted_o(debug_mode_o[0]),
+    .dm_halt_addr_i(DM_HALTADDRESS),
+    .dm_exception_addr_i('0),
+
+    .fetch_enable_i(fetch_enable),
+    .core_sleep_o  (sleep_o[0])
+  );
+    // Coprocessors
+  if (eros_pkg::XInterface) begin
+
+   ccsds_top_cvxif #(
+    .NrRgprPorts(CVE2Cfg.X_NUM_RS),
+    .XLEN(32),
+    .readregflags_t(readregflags_t),
+    .writeregflags_t(writeregflags_t),
+    .id_t(id_t),
+    .hartid_t(hartid_t),
+    .x_issue_req_t(x_issue_req_t),
+    .x_issue_resp_t(x_issue_resp_t),
+    .x_register_t(x_register_t),
+    .x_commit_t(x_commit_t),
+    .x_result_t(x_result_t),
+    .cvxif_req_t(cvxif_req_t),
+    .cvxif_resp_t(cvxif_resp_t),
+    .obi_req_t(obi_req_t),
+    .obi_resp_t(obi_resp_t)
+  ) ccsds_top_cvxif_i (
+    // Clock and Reset
+    .clk_i,
+    .rst_ni,
+
+    //Read RAW Data Input
+    .ext_read_req_o(),
+    .ext_read_resp_i('0),
+
+    //Write Compressed Data Output
+    .ext_write_req_o(),
+    .ext_write_resp_i('0),
+
+    //CV-X-IF
+    .cvxif_req_i(cvxif_req),
+    .cvxif_resp_o(cvxif_resp)
+  );
+
+
+  end else begin
+
+    assign cvxif_resp.issue_ready = '0;
+    assign cvxif_resp.issue_resp = '0;
+    assign cvxif_resp.result_valid = '0;
+    assign cvxif_resp.result = '0;
+   end
 
     // instantiate the core 1
-    cve2_top #() cv32e20_core1 (
+    cve2_top #(
+        .XInterface       (0)
+    ) cv32e20_core1 (
         .clk_i (clk_i),
         .rst_ni(rst_ni),
 
@@ -700,6 +821,25 @@ module cpu_system
         .data_rvalid_i(core_data_resp_i[1].rvalid),
         .data_err_i   (1'b0),
 
+    // Core-V Extension Interface (CV-X-IF)
+    // Issue Interface
+        .x_issue_valid_o(),
+        .x_issue_ready_i('0),
+        .x_issue_req_o(),
+        .x_issue_resp_i('0),
+
+    // Register Interface
+        .x_register_o(),
+
+    // Commit Interface
+        .x_commit_valid_o(),
+        .x_commit_o(),
+
+    // Result Interface
+        .x_result_valid_i('0),
+        .x_result_ready_o(),
+        .x_result_i('0),
+
         .irq_software_i('0),
         .irq_timer_i   ('0),
         .irq_external_i('0),
@@ -716,48 +856,69 @@ module cpu_system
         .core_sleep_o  (sleep_o[1])
     );
 
-    // instantiate the core 2
-    cve2_top #() cv32e20_core2 (
-        .clk_i (clk_i),
-        .rst_ni(rst_ni),
+  // instantiate the core 2
+  cve2_top #(
+      .XInterface       (0)
+  ) cv32e20_core2 (
+    .clk_i (clk_i),
+    .rst_ni(rst_ni),
 
-        .test_en_i(1'b0),
-        .ram_cfg_i('0),
+    .test_en_i(1'b0),
+    .ram_cfg_i('0),
 
-        .hart_id_i  (HARTID),
-        .boot_addr_i(BOOT_ADDR),
+    .hart_id_i  (HARTID),
+    .boot_addr_i(BOOT_ADDR),
 
-        .instr_addr_o  (core_instr_req_o[2].addr),
-        .instr_req_o   (core_instr_req_o[2].req),
-        .instr_rdata_i (core_instr_resp_i[2].rdata),
-        .instr_gnt_i   (core_instr_resp_i[2].gnt),
-        .instr_rvalid_i(core_instr_resp_i[2].rvalid),
-        .instr_err_i   (1'b0),
+    .instr_addr_o  (core_instr_req_o[2].addr),
+    .instr_req_o   (core_instr_req_o[2].req),
+    .instr_rdata_i (core_instr_resp_i[2].rdata),
+    .instr_gnt_i   (core_instr_resp_i[2].gnt),
+    .instr_rvalid_i(core_instr_resp_i[2].rvalid),
+    .instr_err_i   (1'b0),
 
-        .data_addr_o  (core_data_req_o[2].addr),
-        .data_wdata_o (core_data_req_o[2].wdata),
-        .data_we_o    (core_data_req_o[2].we),
-        .data_req_o   (core_data_req_o[2].req),
-        .data_be_o    (core_data_req_o[2].be),
-        .data_rdata_i (core_data_resp_i[2].rdata),
-        .data_gnt_i   (core_data_resp_i[2].gnt),
-        .data_rvalid_i(core_data_resp_i[2].rvalid),
-        .data_err_i   (1'b0),
+    .data_addr_o  (core_data_req_o[2].addr),
+    .data_wdata_o (core_data_req_o[2].wdata),
+    .data_we_o    (core_data_req_o[2].we),
+    .data_req_o   (core_data_req_o[2].req),
+    .data_be_o    (core_data_req_o[2].be),
+    .data_rdata_i (core_data_resp_i[2].rdata),
+    .data_gnt_i   (core_data_resp_i[2].gnt),
+    .data_rvalid_i(core_data_resp_i[2].rvalid),
+    .data_err_i   (1'b0),
 
-        .irq_software_i('0),
-        .irq_timer_i   ('0),
-        .irq_external_i('0),
-        .irq_fast_i    (intc_core2[31:16]),
-        .irq_nm_i      (1'b0),
+  // Core-V Extension Interface (CV-X-IF)
+  // Issue Interface
+    .x_issue_valid_o(),
+    .x_issue_ready_i('0),
+    .x_issue_req_o(),
+    .x_issue_resp_i('0),
 
-        .debug_req_i(debug_req_i[2]),
-        .crash_dump_o(),
-        .debug_halted_o(debug_mode_o[2]),
-        .dm_halt_addr_i(DM_HALTADDRESS),
-        .dm_exception_addr_i('0),
+  // Register Interface
+    .x_register_o(),
 
-        .fetch_enable_i(fetch_enable),
-        .core_sleep_o  (sleep_o[2])
-    );
+  // Commit Interface
+    .x_commit_valid_o(),
+    .x_commit_o(),
+
+  // Result Interface
+    .x_result_valid_i('0),
+    .x_result_ready_o(),
+    .x_result_i('0),
+
+    .irq_software_i('0),
+    .irq_timer_i   ('0),
+    .irq_external_i('0),
+    .irq_fast_i    (intc_core2[31:16]),
+    .irq_nm_i      (1'b0),
+
+    .debug_req_i(debug_req_i[2]),
+    .crash_dump_o(),
+    .debug_halted_o(debug_mode_o[2]),
+    .dm_halt_addr_i(DM_HALTADDRESS),
+    .dm_exception_addr_i('0),
+
+    .fetch_enable_i(fetch_enable),
+    .core_sleep_o  (sleep_o[2])
+  );
 //  end
 endmodule
