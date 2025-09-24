@@ -29,6 +29,10 @@ module cpu_system
     output obi_req_t  [NHARTS-1 : 0] core_data_req_o,
     input  obi_resp_t [NHARTS-1 : 0] core_data_resp_i,
 
+    // copr
+    output obi_req_t [NHARTS-1:0][1:0] copr_req_o,
+    input obi_resp_t [NHARTS-1:0][1:0] copr_resp_i,
+
     // Interrupt
     //Core 0
     input logic [31:0] intc_core0,
@@ -109,8 +113,8 @@ module cpu_system
   typedef `CVXIF_RESP_T(CVE2Cfg, x_issue_resp_t, x_result_t) cvxif_resp_t;
 
   // CVXIF Interface
-  cvxif_req_t  cvxif_req;
-  cvxif_resp_t cvxif_resp;
+  cvxif_req_t  [NHARTS-1:0] cvxif_req;
+  cvxif_resp_t [NHARTS-1:0] cvxif_resp;
 
 
 
@@ -712,22 +716,22 @@ module cpu_system
 
     // Core-V Extension Interface (CV-X-IF)
     // Issue Interface
-    .x_issue_valid_o(cvxif_req.issue_valid),
-    .x_issue_ready_i(cvxif_resp.issue_ready),
-    .x_issue_req_o(cvxif_req.issue_req),
-    .x_issue_resp_i(cvxif_resp.issue_resp),
+    .x_issue_valid_o(cvxif_req[0].issue_valid),
+    .x_issue_ready_i(cvxif_resp[0].issue_ready),
+    .x_issue_req_o(cvxif_req[0].issue_req),
+    .x_issue_resp_i(cvxif_resp[0].issue_resp),
 
     // Register Interface
-    .x_register_o(cvxif_req.register),
+    .x_register_o(cvxif_req[0].register),
 
     // Commit Interface
-    .x_commit_valid_o(cvxif_req.commit_valid),
-    .x_commit_o(cvxif_req.commit),
+    .x_commit_valid_o(cvxif_req[0].commit_valid),
+    .x_commit_o(cvxif_req[0].commit),
 
     // Result Interface
-    .x_result_valid_i(cvxif_resp.result_valid),
-    .x_result_ready_o(cvxif_req.result_ready),
-    .x_result_i(cvxif_resp.result),
+    .x_result_valid_i(cvxif_resp[0].result_valid),
+    .x_result_ready_o(cvxif_req[0].result_ready),
+    .x_result_i(cvxif_resp[0].result),
 
     .irq_software_i('0),
     .irq_timer_i   ('0),
@@ -745,7 +749,7 @@ module cpu_system
     .fetch_enable_i(fetch_enable),
     .core_sleep_o  (sleep_o[0])
   );
-    // Coprocessors
+    // Coprocessor
   if (eros_pkg::XInterface) begin
 
    ccsds_top_cvxif #(
@@ -764,36 +768,36 @@ module cpu_system
     .cvxif_resp_t(cvxif_resp_t),
     .obi_req_t(obi_req_t),
     .obi_resp_t(obi_resp_t)
-  ) ccsds_top_cvxif_i (
+  ) ccsds_top_cvxif0_i (
     // Clock and Reset
     .clk_i,
     .rst_ni,
 
     //Read RAW Data Input
-    .ext_read_req_o(),
-    .ext_read_resp_i('0),
+    .ext_read_req_o(copr_req_o[0][0]),
+    .ext_read_resp_i(copr_resp_i[0][0]),
 
     //Write Compressed Data Output
-    .ext_write_req_o(),
-    .ext_write_resp_i('0),
+    .ext_write_req_o(copr_req_o[0][1]),
+    .ext_write_resp_i(copr_resp_i[0][1]),
 
     //CV-X-IF
-    .cvxif_req_i(cvxif_req),
-    .cvxif_resp_o(cvxif_resp)
+    .cvxif_req_i(cvxif_req[0]),
+    .cvxif_resp_o(cvxif_resp[0])
   );
 
 
   end else begin
 
-    assign cvxif_resp.issue_ready = '0;
-    assign cvxif_resp.issue_resp = '0;
-    assign cvxif_resp.result_valid = '0;
-    assign cvxif_resp.result = '0;
+    assign cvxif_resp[0].issue_ready = '0;
+    assign cvxif_resp[0].issue_resp = '0;
+    assign cvxif_resp[0].result_valid = '0;
+    assign cvxif_resp[0].result = '0;
    end
 
     // instantiate the core 1
     cve2_top #(
-        .XInterface       (0)
+        .XInterface(eros_pkg::XInterface)
     ) cv32e20_core1 (
         .clk_i (clk_i),
         .rst_ni(rst_ni),
@@ -821,24 +825,24 @@ module cpu_system
         .data_rvalid_i(core_data_resp_i[1].rvalid),
         .data_err_i   (1'b0),
 
-    // Core-V Extension Interface (CV-X-IF)
-    // Issue Interface
-        .x_issue_valid_o(),
-        .x_issue_ready_i('0),
-        .x_issue_req_o(),
-        .x_issue_resp_i('0),
+        // Core-V Extension Interface (CV-X-IF)
+        // Issue Interface
+        .x_issue_valid_o(cvxif_req[1].issue_valid),
+        .x_issue_ready_i(cvxif_resp[1].issue_ready),
+        .x_issue_req_o(cvxif_req[1].issue_req),
+        .x_issue_resp_i(cvxif_resp[1].issue_resp),
 
-    // Register Interface
-        .x_register_o(),
+        // Register Interface
+        .x_register_o(cvxif_req[1].register),
 
-    // Commit Interface
-        .x_commit_valid_o(),
-        .x_commit_o(),
+        // Commit Interface
+        .x_commit_valid_o(cvxif_req[1].commit_valid),
+        .x_commit_o(cvxif_req[1].commit),
 
-    // Result Interface
-        .x_result_valid_i('0),
-        .x_result_ready_o(),
-        .x_result_i('0),
+        // Result Interface
+        .x_result_valid_i(cvxif_resp[1].result_valid),
+        .x_result_ready_o(cvxif_req[1].result_ready),
+        .x_result_i(cvxif_resp[1].result),
 
         .irq_software_i('0),
         .irq_timer_i   ('0),
@@ -855,10 +859,55 @@ module cpu_system
         .fetch_enable_i(fetch_enable),
         .core_sleep_o  (sleep_o[1])
     );
+    // Coprocessor
+        if (eros_pkg::XInterface) begin
+
+        ccsds_top_cvxif #(
+          .NrRgprPorts(CVE2Cfg.X_NUM_RS),
+          .XLEN(32),
+          .readregflags_t(readregflags_t),
+          .writeregflags_t(writeregflags_t),
+          .id_t(id_t),
+          .hartid_t(hartid_t),
+          .x_issue_req_t(x_issue_req_t),
+          .x_issue_resp_t(x_issue_resp_t),
+          .x_register_t(x_register_t),
+          .x_commit_t(x_commit_t),
+          .x_result_t(x_result_t),
+          .cvxif_req_t(cvxif_req_t),
+          .cvxif_resp_t(cvxif_resp_t),
+          .obi_req_t(obi_req_t),
+          .obi_resp_t(obi_resp_t)
+        ) ccsds_top_cvxif1_i (
+          // Clock and Reset
+          .clk_i,
+          .rst_ni,
+
+          //Read RAW Data Input
+          .ext_read_req_o(copr_req_o[1][0]),
+          .ext_read_resp_i(copr_resp_i[1][0]),
+
+          //Write Compressed Data Output
+          .ext_write_req_o(copr_req_o[1][1]),
+          .ext_write_resp_i(copr_resp_i[1][1]),
+
+          //CV-X-IF
+          .cvxif_req_i(cvxif_req[1]),
+          .cvxif_resp_o(cvxif_resp[1])
+        );
+
+
+        end else begin
+
+          assign cvxif_resp[1].issue_ready = '0;
+          assign cvxif_resp[1].issue_resp = '0;
+          assign cvxif_resp[1].result_valid = '0;
+          assign cvxif_resp[1].result = '0;
+        end
 
   // instantiate the core 2
   cve2_top #(
-      .XInterface       (0)
+      .XInterface(eros_pkg::XInterface)
   ) cv32e20_core2 (
     .clk_i (clk_i),
     .rst_ni(rst_ni),
@@ -886,24 +935,24 @@ module cpu_system
     .data_rvalid_i(core_data_resp_i[2].rvalid),
     .data_err_i   (1'b0),
 
-  // Core-V Extension Interface (CV-X-IF)
-  // Issue Interface
-    .x_issue_valid_o(),
-    .x_issue_ready_i('0),
-    .x_issue_req_o(),
-    .x_issue_resp_i('0),
+    // Core-V Extension Interface (CV-X-IF)
+    // Issue Interface
+    .x_issue_valid_o(cvxif_req[2].issue_valid),
+    .x_issue_ready_i(cvxif_resp[2].issue_ready),
+    .x_issue_req_o(cvxif_req[2].issue_req),
+    .x_issue_resp_i(cvxif_resp[2].issue_resp),
 
-  // Register Interface
-    .x_register_o(),
+    // Register Interface
+    .x_register_o(cvxif_req[2].register),
 
-  // Commit Interface
-    .x_commit_valid_o(),
-    .x_commit_o(),
+    // Commit Interface
+    .x_commit_valid_o(cvxif_req[2].commit_valid),
+    .x_commit_o(cvxif_req[2].commit),
 
-  // Result Interface
-    .x_result_valid_i('0),
-    .x_result_ready_o(),
-    .x_result_i('0),
+    // Result Interface
+    .x_result_valid_i(cvxif_resp[2].result_valid),
+    .x_result_ready_o(cvxif_req[2].result_ready),
+    .x_result_i(cvxif_resp[2].result),
 
     .irq_software_i('0),
     .irq_timer_i   ('0),
@@ -920,5 +969,51 @@ module cpu_system
     .fetch_enable_i(fetch_enable),
     .core_sleep_o  (sleep_o[2])
   );
+    // Coprocessor
+  if (eros_pkg::XInterface) begin
+
+  ccsds_top_cvxif #(
+    .NrRgprPorts(CVE2Cfg.X_NUM_RS),
+    .XLEN(32),
+    .readregflags_t(readregflags_t),
+    .writeregflags_t(writeregflags_t),
+    .id_t(id_t),
+    .hartid_t(hartid_t),
+    .x_issue_req_t(x_issue_req_t),
+    .x_issue_resp_t(x_issue_resp_t),
+    .x_register_t(x_register_t),
+    .x_commit_t(x_commit_t),
+    .x_result_t(x_result_t),
+    .cvxif_req_t(cvxif_req_t),
+    .cvxif_resp_t(cvxif_resp_t),
+    .obi_req_t(obi_req_t),
+    .obi_resp_t(obi_resp_t)
+  ) ccsds_top_cvxif2_i (
+    // Clock and Reset
+    .clk_i,
+    .rst_ni,
+
+    //Read RAW Data Input
+    .ext_read_req_o(copr_req_o[2][0]),
+    .ext_read_resp_i(copr_resp_i[2][0]),
+
+    //Write Compressed Data Output
+    .ext_write_req_o(copr_req_o[2][1]),
+    .ext_write_resp_i(copr_resp_i[2][1]),
+
+    //CV-X-IF
+    .cvxif_req_i(cvxif_req[2]),
+    .cvxif_resp_o(cvxif_resp[2])
+  );
+
+
+  end else begin
+
+    assign cvxif_resp[2].issue_ready = '0;
+    assign cvxif_resp[2].issue_resp = '0;
+    assign cvxif_resp[2].result_valid = '0;
+    assign cvxif_resp[2].result = '0;
+  end
+
 //  end
 endmodule

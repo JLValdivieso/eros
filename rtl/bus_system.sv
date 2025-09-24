@@ -40,6 +40,10 @@ module bus_system
     input  obi_req_t  [NHARTS-1 : 0] core_data_req_i,
     output obi_resp_t [NHARTS-1 : 0] core_data_resp_o,
 
+    // Internal master acc
+    input  obi_req_t   [1:0] acc_req_i,
+    output obi_resp_t  [1:0] acc_resp_o,
+
     // Internal slave ports
     output obi_req_t  peripheral_slave_req_o,
     input  obi_resp_t peripheral_slave_resp_i,
@@ -99,8 +103,11 @@ module bus_system
   assign int_master_req[eros_pkg::CORE1_DATA_IDX] = demux_core_data_req[1][0];
   assign int_master_req[eros_pkg::CORE2_INSTR_IDX] = core_instr_req_i[2];
   assign int_master_req[eros_pkg::CORE2_DATA_IDX] = demux_core_data_req[2][0];
+  // External master requests
   assign int_master_req[eros_pkg::EXTERNAL_MASTER_IDX] = ext_master_req_i;
-
+  // Acc master requests
+  assign int_master_req[eros_pkg::ACC_READ_MASTER_IDX] = acc_req_i[0];
+  assign int_master_req[eros_pkg::ACC_WRITE_MASTER_IDX] = acc_req_i[1];
   // Internal master responses
   assign core_instr_resp_o[0] = int_master_resp[eros_pkg::CORE0_INSTR_IDX];
   assign demux_core_data_resp[0][0] = int_master_resp[eros_pkg::CORE0_DATA_IDX];
@@ -110,6 +117,9 @@ module bus_system
   assign demux_core_data_resp[2][0] = int_master_resp[eros_pkg::CORE2_DATA_IDX];
   // External master responses
   assign ext_master_resp_o = int_master_resp[eros_pkg::EXTERNAL_MASTER_IDX];
+  // Accc master requests
+  assign acc_resp_o[0] = int_master_resp[eros_pkg::ACC_READ_MASTER_IDX];
+  assign acc_resp_o[1] = int_master_resp[eros_pkg::ACC_WRITE_MASTER_IDX];
 
   // Internal slave requests
   assign peripheral_slave_req_o = int_slave_req[eros_pkg::PERIPHERAL_IDX];
@@ -225,7 +235,7 @@ module bus_system
   assign int_req[0] = ext_csr_reg_req_i;
   assign ext_csr_reg_resp_o = int_rsp[0];
 
-
+  //External Master + Internal CPU
   reg_mux #(
       .NoPorts(2),
       .AW(32),

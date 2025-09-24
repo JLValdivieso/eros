@@ -49,8 +49,10 @@ package eros_pkg;
   localparam logic [31:0] CORE2_INSTR_IDX = 4;
   localparam logic [31:0] CORE2_DATA_IDX = 5;
   localparam logic [31:0] EXTERNAL_MASTER_IDX = 6;
+  localparam logic [31:0] ACC_READ_MASTER_IDX = 7;
+  localparam logic [31:0] ACC_WRITE_MASTER_IDX = 8;
 
-  localparam SYSTEM_XBAR_NMASTER = 7;
+  localparam SYSTEM_XBAR_NMASTER = 9;
   localparam SYSTEM_XBAR_NSLAVE = 5; /*1 ERROR / 2 INTERNAL_PERIPH / 3 EXTERNAL_PERIPH* / 4 RAM0 / 5 RAM1 */
 
   localparam GLOBAL_BASE_ADDRESS = 32'hF0000000;
@@ -158,18 +160,28 @@ package eros_pkg;
   //Peripherals
   //-----------
 
-  localparam PERIPHERALS = 1;
+  localparam PERIPHERALS = 2;
 
   localparam logic [31:0] DEBUG_BOOTROM_START_ADDRESS = PERIPHERAL_START_ADDRESS + 32'h00000000;
   localparam logic [31:0] DEBUG_BOOTROM_SIZE = 32'h00001000;
   localparam logic [31:0] DEBUG_BOOTROM_END_ADDRESS = DEBUG_BOOTROM_START_ADDRESS + DEBUG_BOOTROM_SIZE;
   localparam logic [31:0] DEBUG_BOOTROM_IDX = 32'd0;
 
+  localparam logic [31:0] CUSTOM_MM_ACC_START_ADDRESS = DEBUG_BOOTROM_END_ADDRESS + 32'h00000000;
+  localparam logic [31:0] CUSTOM_MM_ACC_SIZE = 32'h00001000;
+  localparam logic [31:0] CUSTOM_MM_ACC_END_ADDRESS = CUSTOM_MM_ACC_START_ADDRESS + CUSTOM_MM_ACC_SIZE;
+  localparam logic [31:0] CUSTOM_MM_ACC_IDX = 32'd1;
+
   localparam addr_map_rule_t [PERIPHERALS-1:0] PERIPHERALS_ADDR_RULES = '{
       '{
           idx: DEBUG_BOOTROM_IDX,
           start_addr: DEBUG_BOOTROM_START_ADDRESS,
           end_addr: DEBUG_BOOTROM_END_ADDRESS
+      },
+      '{
+          idx: CUSTOM_MM_ACC_IDX,
+          start_addr: CUSTOM_MM_ACC_START_ADDRESS,
+          end_addr: CUSTOM_MM_ACC_END_ADDRESS
       }
   };
 

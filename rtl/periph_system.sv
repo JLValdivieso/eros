@@ -14,9 +14,11 @@ module periph_system
     input logic rst_ni,
 
     input  obi_req_t  slave_req_i,
-    output obi_resp_t slave_resp_o
-);
+    output obi_resp_t slave_resp_o,
 
+    output reg_req_t  ext_reg_req_o,
+    input  reg_rsp_t  ext_reg_rsp_i
+);
 
   import eros_pkg::*;
 
@@ -83,4 +85,9 @@ module periph_system
       .reg_req_i(peripheral_slv_req[eros_pkg::DEBUG_BOOTROM_IDX]),
       .reg_rsp_o(peripheral_slv_rsp[eros_pkg::DEBUG_BOOTROM_IDX])
   );
+
+  //External Custom MM-Accelerator
+  assign ext_reg_req_o = peripheral_slv_req[eros_pkg::CUSTOM_MM_ACC_IDX];
+  assign peripheral_slv_rsp[eros_pkg::CUSTOM_MM_ACC_IDX] = ext_reg_rsp_i;
+
 endmodule

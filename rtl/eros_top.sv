@@ -56,6 +56,10 @@ module eros_top
   reg_req_t wrapper_csr_req;
   reg_rsp_t wrapper_csr_resp;
 
+  // External Control/Status Register
+  reg_req_t ext_mm_reg_req;
+  reg_rsp_t ext_mm_reg_rsp;
+
   // Internal slave ports
   obi_req_t peripheral_slave_req;
   obi_resp_t peripheral_slave_resp;
@@ -64,6 +68,13 @@ module eros_top
   obi_req_t [N_BANKS-1:0] ram_req;
   obi_resp_t [N_BANKS-1:0] ram_resp;
 
+  // Acc signals ports
+  obi_req_t [1:0] acc_req;
+  obi_resp_t [1:0] acc_resp;
+
+  // Copr signals ports
+  obi_req_t [1:0] cpu_copr_req;
+  obi_resp_t [1:0] cpu_copr_resp;
 
   //CPU_System
   safe_cpu_wrapper #(
@@ -80,6 +91,10 @@ module eros_top
       // Data memory interface
       .core_data_req_o (core_data_req),
       .core_data_resp_i(core_data_resp),
+
+      // Acc
+      .copr_req_o(cpu_copr_req),
+      .copr_resp_i(cpu_copr_resp),
 
       // Wrapper Control & Status Rgister
       .wrapper_csr_req_i (wrapper_csr_req),
@@ -100,7 +115,9 @@ module eros_top
       .clk_i,
       .rst_ni,
       .slave_req_i (peripheral_slave_req),
-      .slave_resp_o(peripheral_slave_resp)
+      .slave_resp_o(peripheral_slave_resp),
+      .ext_reg_req_o(ext_mm_reg_req),
+      .ext_reg_rsp_i(ext_mm_reg_rsp)
   );
 
   memory_sys #(
@@ -124,34 +141,73 @@ module eros_top
       .obi_resp_t           (obi_resp_t ),
       .NHARTS(NHARTS)
   ) bus_system_i (
+    .clk_i,
+    .rst_ni,
+
+    // Internal master ports
+    .core_instr_req_i (core_instr_req),
+    .core_instr_resp_o(core_instr_resp),
+
+    .core_data_req_i (core_data_req),
+    .core_data_resp_o(core_data_resp),
+
+    .acc_req_i(acc_req),
+    .acc_resp_o(acc_resp),
+
+    .ext_master_req_i,
+    .ext_master_resp_o,
+    .ext_slave_req_o,
+    .ext_slave_resp_i,
+
+    .ext_csr_reg_req_i (csr_reg_req_i),
+    .ext_csr_reg_resp_o(csr_reg_resp_o),
+
+    // Internal slave ports
+    .peripheral_slave_req_o (peripheral_slave_req),
+    .peripheral_slave_resp_i(peripheral_slave_resp),
+
+    .ram_req_o (ram_req),
+    .ram_resp_i(ram_resp),
+
+    // Control Status Register Output
+    .wrapper_csr_req_o(wrapper_csr_req),
+    .wrapper_csr_rsp_i(wrapper_csr_resp)
+  );
+
+
+  if (eros_pkg::XInterface) begin
+
+    assign acc_req = cpu_copr_req;
+    assign cpu_copr_resp = acc_resp;
+
+    assign ext_mm_reg_rsp = '0;
+
+  end else begin
+    ccsds_top_mm #(
+      .obi_req_t            (obi_req_t  ),
+      .obi_resp_t           (obi_resp_t )
+    )ccsds_top_mm_i (
+      // Clock and Reset
       .clk_i,
       .rst_ni,
 
-      // Internal master ports
-      .core_instr_req_i (core_instr_req),
-      .core_instr_resp_o(core_instr_resp),
+      //Read RAW Data Input
+      .ext_read_req_o(acc_req[0]),
+      .ext_read_resp_i(acc_resp[0]),
 
-      .core_data_req_i (core_data_req),
-      .core_data_resp_o(core_data_resp),
+      //Write Compressed Data Output
+      .ext_write_req_o(acc_req[1]),
+      .ext_write_resp_i(acc_resp[1]),
 
-      .ext_master_req_i,
-      .ext_master_resp_o,
-      .ext_slave_req_o,
-      .ext_slave_resp_i,
+      //CSR
+      .csr_reg_req_i(ext_mm_reg_req),
+      .csr_reg_rsp_o(ext_mm_reg_rsp),
 
-      .ext_csr_reg_req_i (csr_reg_req_i),
-      .ext_csr_reg_resp_o(csr_reg_resp_o),
+      //IRQ
+      .irq_o()
 
-      // Internal slave ports
-      .peripheral_slave_req_o (peripheral_slave_req),
-      .peripheral_slave_resp_i(peripheral_slave_resp),
+    );
+  end
 
-      .ram_req_o (ram_req),
-      .ram_resp_i(ram_resp),
-
-      // Control Status Register Output
-      .wrapper_csr_req_o(wrapper_csr_req),
-      .wrapper_csr_rsp_i(wrapper_csr_resp)
-  );
 
 endmodule

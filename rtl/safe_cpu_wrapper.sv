@@ -24,6 +24,10 @@ module safe_cpu_wrapper
     output obi_req_t  [NHARTS-1 : 0] core_data_req_o,
     input  obi_resp_t [NHARTS-1 : 0] core_data_resp_i,
 
+    // Coprocessor Signals
+    output obi_req_t [1:0] copr_req_o,
+    input obi_resp_t [1:0] copr_resp_i,
+
     // OBI -> Memory mapped register control Safe CPU
     input  reg_req_t wrapper_csr_req_i,
     output reg_rsp_t wrapper_csr_resp_o,
@@ -130,38 +134,68 @@ module safe_cpu_wrapper
   // Data memory interface
   obi_resp_t [NHARTS-1 : 0] isolate_core_data_resp;
 
+  // Coprocessors Signals
+  obi_req_t [NHARTS-1 : 0][1:0] copr_req_s;
+  obi_resp_t [NHARTS-1 : 0][1:0] copr_resp_s;
+
+  obi_req_t [1:0] copr_dcls_master_req_s;
+  obi_resp_t [1:0] copr_dcls_master_resp_s;
+
+  obi_req_t [1:0] copr_dcls_slave_req_s;
+  obi_resp_t [1:0] copr_dcls_slave_resp_s;
+
+  obi_req_t   [1:0] voted_copr_req_s;
+  obi_resp_t  [1:0] voted_copr_resp_s;
+
+  obi_req_t   [1:0] compared_copr_req_s;
+  obi_resp_t  [1:0] compared_copr_resp_s;
+
+  obi_req_t   [1:0] master_copr_req_s;
+  obi_resp_t  [1:0] master_copr_resp_s;
+
+  obi_req_t   [1:0] slave_copr_req_s;
+  obi_resp_t  [1:0] slave_copr_resp_s;
+
+  obi_req_t   [1:0] master_copr_req_ff_s;
+  obi_resp_t  [1:0] master_copr_resp_ff_s;
+
+  obi_req_t   [1:0] slave_copr_req_ff_s;
+  obi_resp_t  [1:0] slave_copr_resp_ff_s;
 
   //***Cores System***//
 
   cpu_system #(
-      .obi_req_t            (obi_req_t  ),
-      .obi_resp_t           (obi_resp_t )
-      ) cpu_system_i (
-      .clk_i,
-      .rst_ni,
-      // Instruction memory interface
-      .core_instr_req_o (core_instr_req),
-      .core_instr_resp_i(core_instr_resp),
+    .obi_req_t            (obi_req_t  ),
+    .obi_resp_t           (obi_resp_t )
+    ) cpu_system_i (
+    .clk_i,
+    .rst_ni,
+    // Instruction memory interface
+    .core_instr_req_o (core_instr_req),
+    .core_instr_resp_i(core_instr_resp),
 
-      // Data memory interface
-      .core_data_req_o (core_data_req),
-      .core_data_resp_i(core_data_resp),
+    .copr_req_o(copr_req_s),
+    .copr_resp_i(copr_resp_s),
 
-      // Interrupt
-      //Core 0
-      .intc_core0(core_intr_i[0]),
-      //Core 1
-      .intc_core1(core_intr_i[1]),
+    // Data memory interface
+    .core_data_req_o (core_data_req),
+    .core_data_resp_i(core_data_resp),
 
-      //Core 2
-      .intc_core2(core_intr_i[2]),
+    // Interrupt
+    //Core 0
+    .intc_core0(core_intr_i[0]),
+    //Core 1
+    .intc_core1(core_intr_i[1]),
+
+    //Core 2
+    .intc_core2(core_intr_i[2]),
 
 
-      .sleep_o(sleep_s),
+    .sleep_o(sleep_s),
 
-      // Debug Interface
-      .debug_req_i (core_debug_req_i),
-      .debug_mode_o(debug_mode_s)
+    // Debug Interface
+    .debug_req_i (core_debug_req_i),
+    .debug_mode_o(debug_mode_s)
   );
 
   assign sleep_o = sleep_ff_s;
@@ -795,4 +829,260 @@ module safe_cpu_wrapper
         .Hart_intc_ack_o(Hart_intc_ack_s[i])
     );
   end
+    //***Coprocessor Interconnect***//
+  if(eros_pkg::XInterface) begin
+
+    //VOTER
+    tmr_voter #(
+      .obi_req_t            (obi_req_t  ),
+      .obi_resp_t           (obi_resp_t )
+    ) tmr_coproc_i (
+        // Instruction Bus
+      .core_instr_req_i({copr_req_s[0][0],copr_req_s[1][0],copr_req_s[2][0]}),
+      .voted_core_instr_req_o(voted_copr_req_s[0]),
+      .enable_i(tmr_voter_enable_s),
+      // Data Bus
+      .core_data_req_i({copr_req_s[0][1],copr_req_s[1][1],copr_req_s[2][1]}),
+      .voted_core_data_req_o(voted_copr_req_s[1]),
+
+      .error_o(),
+      .error_id_o()
+    );
+    logic pipe0_gnt, pipe1_gnt;
+    obi_req_t   [1:0] inter_compared_copr_req_s;
+    obi_resp_t  [1:0] inter_compared_copr_resp_s;
+
+    //DCLS Lockstep
+    lockstep_reg #(
+        .obi_req_t            (obi_req_t  ),
+        .obi_resp_t           (obi_resp_t ),
+        .NCYCLES(NCYCLES)
+    ) lockstep_accm_reg_i (
+        .clk_i,
+        .rst_ni,
+        .core_instr_req_i({slave_copr_req_s[0],master_copr_req_s[0]}),
+        .core_instr_req_o({slave_copr_req_ff_s[0],master_copr_req_ff_s[0]}),
+        .core_instr_resp_i(inter_compared_copr_resp_s[0]),
+        .core_instr_resp_o({slave_copr_resp_ff_s[0],master_copr_resp_ff_s[0]}),
+        .core_data_req_i({slave_copr_req_s[1],master_copr_req_s[1]}),
+        .core_data_req_o({slave_copr_req_ff_s[1],master_copr_req_ff_s[1]}),
+        .core_data_resp_i(inter_compared_copr_resp_s[1]),
+        .core_data_resp_o({slave_copr_resp_ff_s[1],master_copr_resp_ff_s[1]}),
+        .enable_i(delayed_s && dual_mode_s)
+    );
+
+    assign inter_compared_copr_resp_s[0].gnt = pipe0_gnt;
+    assign inter_compared_copr_resp_s[0].rvalid = copr_resp_i[0].rvalid;
+    assign inter_compared_copr_resp_s[0].rdata = copr_resp_i[0].rdata;
+
+    assign inter_compared_copr_resp_s[1].gnt = pipe1_gnt;
+    assign inter_compared_copr_resp_s[1].rvalid = copr_resp_i[1].rvalid;
+    assign inter_compared_copr_resp_s[1].rdata = copr_resp_i[1].rdata;
+
+
+    obi_sngreg #(
+        .obi_req_t            (obi_req_t  ),
+        .obi_resp_t           (obi_resp_t )
+    )obi_sngreg0_copr_i (
+        .clk_i,
+        .rst_ni,
+        .clear_pipeline       (~(delayed_s && dual_mode_s)),
+        .core_instr_req_i     (inter_compared_copr_req_s[0]),
+        .core_instr_req_o     (compared_copr_req_s[0]),
+        .core_instr_resp_gnt_i(copr_resp_i[0].gnt),
+        .core_instr_resp_gnt_o(pipe0_gnt)
+    );
+
+    obi_sngreg #(
+        .obi_req_t            (obi_req_t  ),
+        .obi_resp_t           (obi_resp_t )
+    )obi_sngreg1_copr_i (
+        .clk_i,
+        .rst_ni,
+        .clear_pipeline       (~(delayed_s && dual_mode_s)),
+        .core_instr_req_i     (inter_compared_copr_req_s[1]),
+        .core_instr_req_o     (compared_copr_req_s[1]),
+        .core_instr_resp_gnt_i(copr_resp_i[1].gnt),
+        .core_instr_resp_gnt_o(pipe1_gnt)
+    );
+
+    //Slave
+    dmr_comparator #(
+        .obi_req_t            (obi_req_t  ),
+        .obi_resp_t           (obi_resp_t )
+    ) dmr_comparator_i (
+        .core_instr_req_i({copr_dcls_master_req_s[0],copr_dcls_slave_req_s[0]}),
+        .compared_core_instr_req_o(inter_compared_copr_req_s[0]),
+        .core_data_req_i({copr_dcls_master_req_s[1],copr_dcls_slave_req_s[1]}),
+        .compared_core_data_req_o(inter_compared_copr_req_s[1]),
+        .error_o()
+    );
+
+    //DCLS Simple or Staggered upper
+    always_comb begin
+      if (delayed_s && dual_mode_s) begin
+        copr_dcls_master_req_s = master_copr_req_ff_s;
+        copr_dcls_slave_req_s = slave_copr_req_ff_s;
+      end else begin
+        copr_dcls_master_req_s = master_copr_req_s;
+        copr_dcls_slave_req_s =  slave_copr_req_s;
+      end
+    end
+    //Shadow Selection upper
+    always_comb begin
+      if(!master_core_ff_s[0] && dmr_config_s[0]) begin
+        slave_copr_req_s[0] = copr_req_s[0][0];
+        slave_copr_req_s[1] = copr_req_s[0][1];
+      end else if(!master_core_ff_s[1]&& dmr_config_s[1]) begin
+        slave_copr_req_s[0] = copr_req_s[1][0];
+        slave_copr_req_s[1] = copr_req_s[1][1];
+      end else if(!master_core_ff_s[2]&& dmr_config_s[2]) begin
+        slave_copr_req_s[0] = copr_req_s[2][0];
+        slave_copr_req_s[1] = copr_req_s[2][1];
+      end else begin
+        slave_copr_req_s[0] = copr_req_s[2][0];
+        slave_copr_req_s[1] = copr_req_s[2][1];
+      end
+    end
+    //Single Master upper
+    always_comb begin
+      if(master_core_ff_s[0]) begin
+        master_copr_req_s[0] = copr_req_s[0][0];
+        master_copr_req_s[1] = copr_req_s[0][1];
+      end else if(master_core_ff_s[1]) begin
+        master_copr_req_s[0] = copr_req_s[1][0];
+        master_copr_req_s[1] = copr_req_s[1][1];
+      end else if(master_core_ff_s[2]) begin
+        master_copr_req_s[0] = copr_req_s[2][0];
+        master_copr_req_s[1] = copr_req_s[2][1];
+      end else begin
+        master_copr_req_s[0] = copr_req_s[2][0];
+        master_copr_req_s[1] = copr_req_s[2][1];
+      end
+    end
+
+    // Final Mux Selection
+    always_comb begin
+      if (tmr_voter_enable_s && !dual_mode_s) begin
+        copr_req_o = voted_copr_req_s;
+      end else if (!tmr_voter_enable_s && dual_mode_s) begin
+        copr_req_o = compared_copr_req_s;
+      end else begin
+        copr_req_o = master_copr_req_s;
+      end
+    end
+
+    //Resp Mux
+    always_comb begin
+      if (dual_mode_s) begin
+        if (delayed_s) begin
+          if(master_core_ff_s[0]) begin
+            copr_resp_s[0] = master_copr_resp_ff_s;
+
+              if ((!master_core_ff_s[1]&& dmr_config_s[1])) begin
+                copr_resp_s[1] = slave_copr_resp_ff_s;
+                copr_resp_s[2] = '0;
+              end else begin
+                copr_resp_s[1] = '0;
+                copr_resp_s[2] = slave_copr_resp_ff_s;
+              end;
+          end else if(master_core_ff_s[1]) begin
+            copr_resp_s[1] = master_copr_resp_ff_s;
+              if ((!master_core_ff_s[0]&& dmr_config_s[0])) begin
+                copr_resp_s[0] = slave_copr_resp_ff_s;
+                copr_resp_s[2] = '0;
+              end else begin
+                copr_resp_s[0] = '0;
+                copr_resp_s[2] = slave_copr_resp_ff_s;
+              end;
+          end else if(master_core_ff_s[2]) begin
+            copr_resp_s[2] = master_copr_resp_ff_s;
+              if ((!master_core_ff_s[0]&& dmr_config_s[0])) begin
+                copr_resp_s[0] = slave_copr_resp_ff_s;
+                copr_resp_s[1] = '0;
+              end else begin
+                copr_resp_s[0] = '0;
+                copr_resp_s[1] = slave_copr_resp_ff_s;
+              end;
+          end else begin
+            copr_resp_s[2] = master_copr_resp_ff_s;
+              if ((!master_core_ff_s[0]&& dmr_config_s[0])) begin
+                copr_resp_s[0] = slave_copr_resp_ff_s;
+                copr_resp_s[1] = '0;
+              end else begin
+                copr_resp_s[0] = '0;
+                copr_resp_s[1] = slave_copr_resp_ff_s;
+              end;
+          end
+        end else begin
+          if(master_core_ff_s[0]) begin
+            copr_resp_s[0] = copr_resp_i;
+              if ((!master_core_ff_s[1]&& dmr_config_s[1])) begin
+                copr_resp_s[1] = copr_resp_i;
+                copr_resp_s[2] = '0;
+              end else begin
+                copr_resp_s[1] = '0;
+                copr_resp_s[2] = copr_resp_i;
+              end;
+          end else if(master_core_ff_s[1]) begin
+            copr_resp_s[1] = copr_resp_i;
+              if ((!master_core_ff_s[0]&& dmr_config_s[0])) begin
+                copr_resp_s[0] = copr_resp_i;
+                copr_resp_s[2] = '0;
+              end else begin
+                copr_resp_s[0] = '0;
+                copr_resp_s[2] = copr_resp_i;
+              end;
+          end else if(master_core_ff_s[2]) begin
+            copr_resp_s[2] = copr_resp_i;
+              if ((!master_core_ff_s[0]&& dmr_config_s[0])) begin
+                copr_resp_s[0] = copr_resp_i;
+                copr_resp_s[1] = '0;
+              end else begin
+                copr_resp_s[0] = '0;
+                copr_resp_s[1] = copr_resp_i;
+              end;
+          end else begin
+            copr_resp_s[2] = copr_resp_i;
+              if ((!master_core_ff_s[0]&& dmr_config_s[0])) begin
+                copr_resp_s[0] = copr_resp_i;
+                copr_resp_s[1] = '0;
+              end else begin
+                copr_resp_s[0] = '0;
+                copr_resp_s[1] = copr_resp_i;
+              end;
+          end
+        end
+      end else if (tmr_voter_enable_s && !dual_mode_s) begin
+        copr_resp_s[0] = copr_resp_i;
+        copr_resp_s[1] = copr_resp_i;
+        copr_resp_s[2] = copr_resp_i;
+      end else begin
+        if ((master_core_ff_s[0])) begin
+        copr_resp_s[0] = copr_resp_i;
+        copr_resp_s[1] = '0;
+        copr_resp_s[2] = '0;
+        end else if ((master_core_ff_s[1])) begin
+        copr_resp_s[0] = '0;
+        copr_resp_s[1] = copr_resp_i;
+        copr_resp_s[2] = '0;
+        end else if ((master_core_ff_s[2])) begin
+        copr_resp_s[0] = '0;
+        copr_resp_s[1] = '0;
+        copr_resp_s[2] = copr_resp_i;
+        end else begin
+        copr_resp_s[0] = copr_resp_i;
+        copr_resp_s[1] = '0;
+        copr_resp_s[2] = '0;
+        end
+        end
+    end
+
+
+  end else begin
+    assign copr_req_o = '0;
+    assign copr_resp_s = '0;;
+
+  end
+
 endmodule
