@@ -26,7 +26,10 @@ module eros_top_wrapper_axi
     parameter type axi_slv_req_t        = logic,
     parameter type axi_slv_rsp_t        = logic,
     parameter type obi_req_t            = logic,
-    parameter type obi_resp_t           = logic
+    parameter type obi_resp_t           = logic,
+    // For PULP SoCs
+    parameter type reg_req_t            = logic, 
+    parameter type reg_rsp_t            = logic
 ) (
     // Clock and Reset
     input logic clk_i,
@@ -48,12 +51,12 @@ module eros_top_wrapper_axi
     // ---------------------------------------------
 
     // ----------------------------------------------
-    // Ports of Axi Slave Bus Interface S01_AXI -> REG
+    // Control and Status Register for PULP SoCs
     // ----------------------------------------------
-    input  axi_slv_req_t    axi_S01_req_i,
-    output axi_slv_rsp_t    axi_S01_rsp_o,
+    input  reg_req_t    reg_req_i,
+    output reg_rsp_t    reg_rsp_o,
 
-    output logic            axi_S01_busy_o,
+    // output logic            axi_S01_busy_o,
 
     // ----------------------------------------------
 
@@ -74,41 +77,41 @@ module eros_top_wrapper_axi
     obi_resp_t    axi_obi_master_resp;
 
     // Slave AXI-LITE - Slave REG
-    reg_req_t axi_reg_master_req;
-    reg_rsp_t axi_reg_master_rsp;
+    // reg_req_t axi_reg_master_req;
+    // reg_rsp_t axi_reg_master_rsp;
 
 //////////////////////////////////////////////
 //              AXI -> REG                  //
 //////////////////////////////////////////////
 
-axi_to_reg_v2 #(
-    /// The width of the address.
-    .AxiAddrWidth    (S01_AXI_ADDR_WIDTH),
-    /// The width of the data.
-    .AxiDataWidth    (S01_AXI_DATA_WIDTH),
-    /// The width of the id.
-    .AxiIdWidth      (S01_AXI_ID_WIDTH_SLAVE),
-    /// The width of the user signal.
-    .AxiUserWidth    (S01_AXI_USER_WIDTH),
-    /// The data width of the Reg bus
-    .RegDataWidth    (32'd32),
+// axi_to_reg_v2 #(
+//     /// The width of the address.
+//     .AxiAddrWidth    (S01_AXI_ADDR_WIDTH),
+//     /// The width of the data.
+//     .AxiDataWidth    (S01_AXI_DATA_WIDTH),
+//     /// The width of the id.
+//     .AxiIdWidth      (S01_AXI_ID_WIDTH_SLAVE),
+//     /// The width of the user signal.
+//     .AxiUserWidth    (S01_AXI_USER_WIDTH),
+//     /// The data width of the Reg bus
+//     .RegDataWidth    (32'd32),
 
-    .axi_req_t       (axi_slv_req_t),
-    .axi_rsp_t       (axi_slv_rsp_t),
-    /// Regbus request struct type.
-    .reg_req_t       (reg_req_t),
-    /// Regbus response struct type.
-    .reg_rsp_t       (reg_rsp_t)
-) axi_to_reg_v2_i(
-    .clk_i,
-    .rst_ni,
-    .axi_req_i(axi_S01_req_i),
-    .axi_rsp_o(axi_S01_rsp_o),
-    .reg_req_o(axi_reg_master_req),
-    .reg_rsp_i(axi_reg_master_rsp),
-    .reg_id_o(),
-    .busy_o(axi_S01_busy_o)
-);
+//     .axi_req_t       (axi_slv_req_t),
+//     .axi_rsp_t       (axi_slv_rsp_t),
+//     /// Regbus request struct type.
+//     .reg_req_t       (reg_req_t),
+//     /// Regbus response struct type.
+//     .reg_rsp_t       (reg_rsp_t)
+// ) axi_to_reg_v2_i(
+//     .clk_i,
+//     .rst_ni,
+//     .axi_req_i(axi_S01_req_i),
+//     .axi_rsp_o(axi_S01_rsp_o),
+//     .reg_req_o(axi_reg_master_req),
+//     .reg_rsp_i(axi_reg_master_rsp),
+//     .reg_id_o(),
+//     .busy_o(axi_S01_busy_o)
+// );
 
 //////////////////////////////////////////////
 // AXI64 -> AXI32 -> AXI_LITE -> APB -> OBI //
@@ -293,8 +296,8 @@ apb_to_obi_wrapper #(
       .ext_master_resp_o(axi_obi_master_resp),
       .ext_slave_req_o,
       .ext_slave_resp_i,
-      .csr_reg_req_i(axi_reg_master_req),
-      .csr_reg_resp_o(axi_reg_master_rsp),
+      .csr_reg_req_i(reg_req_i),
+      .csr_reg_resp_o(reg_rsp_o),
       .debug_req_i,
       .pwrgate_ni,
       .pwrgate_ack_no,
