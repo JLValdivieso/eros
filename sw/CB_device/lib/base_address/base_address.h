@@ -15,8 +15,8 @@ extern "C" {
 #endif
 
 //Define
-#define GLOBAL_BASE_ADDRESS 0xF0000000	/*User defined*/
-#define SAFE_CSR_BASE_ADDRESS 0x20070000 /*User defined*/
+#define GLOBAL_BASE_ADDRESS 0x03040000	/*User defined*/
+#define SAFE_CSR_BASE_ADDRESS 0x03070000 /*User defined*/
 
 
 //Priv Reg
