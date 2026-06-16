@@ -11,7 +11,7 @@
  * the read instruction.
  */
 
-`include "prim_assert.sv"
+`include "prim_assert_compat.svh"
 
 module cve2_if_stage import cve2_pkg::*; (
   input  logic                         clk_i,

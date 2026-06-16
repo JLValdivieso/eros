@@ -6,7 +6,7 @@
  * Control / status register primitive
  */
 
-`include "prim_assert.sv"
+`include "prim_assert_compat.svh"
 
 module cve2_csr #(
   parameter int unsigned    Width      = 32,

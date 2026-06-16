@@ -7,7 +7,7 @@
   `define RVFI
 `endif
 
-`include "prim_assert.sv"
+`include "prim_assert_compat.svh"
 
 /**
  * Top level module of the CVE2 RISC-V core

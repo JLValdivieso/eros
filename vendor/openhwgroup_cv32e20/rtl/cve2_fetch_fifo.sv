@@ -10,7 +10,7 @@
  * clear_i clears the FIFO for the following cycle, including any new request
  */
 
-`include "prim_assert.sv"
+`include "prim_assert_compat.svh"
 
 module cve2_fetch_fifo #(
   parameter int unsigned NUM_REQS = 2

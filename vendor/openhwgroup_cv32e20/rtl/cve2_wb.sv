@@ -9,7 +9,7 @@
  * a simple passthrough to write data direct to the register file.
  */
 
-`include "prim_assert.sv"
+`include "prim_assert_compat.svh"
 `include "dv_fcov_macros.svh"
 
 module cve2_wb #(

@@ -9,7 +9,7 @@
  * Baugh-Wooley multiplier and Long Division
  */
 
-`include "prim_assert.sv"
+`include "prim_assert_compat.svh"
 
 module cve2_multdiv_slow
 (

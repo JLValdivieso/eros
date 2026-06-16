@@ -7,7 +7,7 @@
  * Main controller of the processor
  */
 
-`include "prim_assert.sv"
+`include "prim_assert_compat.svh"
 `include "dv_fcov_macros.svh"
 
 module cve2_controller #(

@@ -10,7 +10,7 @@
  * Specification, draft version 1.11
  */
 
-`include "prim_assert.sv"
+`include "prim_assert_compat.svh"
 
 module cve2_cs_registers #(
   parameter bit               DbgTriggerEn      = 0,

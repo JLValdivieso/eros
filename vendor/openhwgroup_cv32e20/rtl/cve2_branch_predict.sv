@@ -15,7 +15,7 @@
  * The predictor is entirely combinational but takes clk/rst_n signals for use by assertions.
  */
 
-`include "prim_assert.sv"
+`include "prim_assert_compat.svh"
 
 module cve2_branch_predict (
   input  logic clk_i,
