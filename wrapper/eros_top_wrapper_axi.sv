@@ -273,6 +273,19 @@ apb_to_obi_wrapper #(
 //                  EROS                    //
 //////////////////////////////////////////////
 
+// EROS native register interface
+reg_pkg::reg_req_t eros_reg_req;
+reg_pkg::reg_rsp_t eros_reg_rsp;
+
+assign eros_reg_req.valid = reg_req_i.valid;
+assign eros_reg_req.write = reg_req_i.write;
+assign eros_reg_req.wstrb = reg_req_i.wstrb;
+assign eros_reg_req.addr  = reg_req_i.addr[31:0];
+assign eros_reg_req.wdata = reg_req_i.wdata[31:0];
+
+assign reg_rsp_o.ready = eros_reg_rsp.ready;
+assign reg_rsp_o.error = eros_reg_rsp.error;
+assign reg_rsp_o.rdata = eros_reg_rsp.rdata;
 
 
 
@@ -296,8 +309,8 @@ apb_to_obi_wrapper #(
       .ext_master_resp_o(axi_obi_master_resp),
       .ext_slave_req_o,
       .ext_slave_resp_i,
-      .csr_reg_req_i(reg_req_i),
-      .csr_reg_resp_o(reg_rsp_o),
+      .csr_reg_req_i(eros_reg_req),
+      .csr_reg_resp_o(eros_reg_rsp),
       .debug_req_i,
       .pwrgate_ni,
       .pwrgate_ack_no,

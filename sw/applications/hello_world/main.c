@@ -5,13 +5,31 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdint.h>
 #include "CB_Safety.h"
 
+#define SIGNATURE ((volatile uint32_t *)0x03063F00)
 
 int main(int argc, char *argv[])
 {
-    
-printf("[IP_CEI]: Hello world!\n");
+    int a, b, c;
+
+    a = 5;
+    b = 10;
+    c = a + b;
+
+    /*
+     * Memory signature for Cheshire verification
+     */
+    SIGNATURE[0] = 0xDEADBEEF;  // main reached
+    SIGNATURE[1] = a;           // 5
+    SIGNATURE[2] = b;           // 10
+    SIGNATURE[3] = c;           // 15
+    SIGNATURE[4] = 0xCAFEBABE;  // computation completed
+
+    while (1) {
+        asm volatile("nop");
+    }
 
     return 0;
 }

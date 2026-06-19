@@ -24,6 +24,7 @@ dependencies:
 
   cv32e20:              { path: "./vendor/openhwgroup_cv32e20"                                                                            }
   cluster_interconnect: { path: "./vendor/pulp_platform_cluster_interconnect"                                                             }
+  lowrisc_opentitan:    { path: "./vendor/lowrisc_opentitan"                                                                              }
 
 sources:
     include_dirs:

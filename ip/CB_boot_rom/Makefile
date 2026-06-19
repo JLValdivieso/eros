@@ -2,9 +2,9 @@
 
 CB_boot_rom = CB_boot_rom.sv
 
-GCC?=$(RISCV)/bin/riscv32-unknown-elf-gcc
-OBJCOPY?=$(RISCV)/bin/riscv32-unknown-elf-objcopy
-OBJDUMP?=$(RISCV)/bin/riscv32-unknown-elf-objdump
+GCC?=/opt/riscv/eros/bin/riscv64-unknown-elf-gcc
+OBJCOPY?=/opt/riscv/eros/bin/riscv64-unknown-elf-objcopy
+OBJDUMP?=/opt/riscv/eros/bin/riscv64-unknown-elf-objdump
 PYTHON?=python
 
 INC_FOLDERS                 = ../../sw/CB_device/lib/base_address

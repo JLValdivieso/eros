@@ -33,7 +33,7 @@ COMPILER_PREFIX ?= riscv32-unknown-
 TARGET   	?= sim
 
 # Arch options are any RISC-V ISA string supported by the CPU. Default 'rv32imc'
-ARCH     ?= rv32imfc
+ARCH     ?= rv32imc
 
 # Default FPGA
 FPGA_BOARD 	?= pynq-z2

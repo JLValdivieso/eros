@@ -1,14 +1,14 @@
 
-CB_boot_rom.elf:     file format elf32-littleriscv
+CB_boot_rom.elf:     file format elf64-littleriscv
 
 
 Disassembly of section .text:
 
-00000000 <entry>:
+0000000000000000 <entry>:
    0:	00000013          	nop
    4:	00000013          	nop
 
-00000008 <wfi_entry>:
+0000000000000008 <wfi_entry>:
    8:	00000013          	nop
    c:	00000013          	nop
   10:	10500073          	wfi
@@ -16,33 +16,33 @@ Disassembly of section .text:
   18:	00000013          	nop
   1c:	00000013          	nop
 
-00000020 <single_boot>:
-  20:	20070537          	lui	a0,0x20070
-  24:	02452503          	lw	a0,36(a0) # 20070024 <restore_sp+0x2006fe8c>
+0000000000000020 <single_boot>:
+  20:	03070537          	lui	a0,0x3070
+  24:	02452503          	lw	a0,36(a0) # 3070024 <restore_sp+0x306fe8c>
   28:	7b151073          	csrw	dpc,a0
   2c:	7b200073          	dret
-  30:	0000                	unimp
-  32:	1300                	addi	s0,sp,416
-  34:	0000                	unimp
-  36:	1300                	addi	s0,sp,416
-  38:	0000                	unimp
-  3a:	1300                	addi	s0,sp,416
-  3c:	0000                	unimp
-  3e:	1300                	addi	s0,sp,416
-  40:	0000                	unimp
-  42:	1300                	addi	s0,sp,416
-  44:	0000                	unimp
-  46:	1300                	addi	s0,sp,416
-  48:	0000                	unimp
-  4a:	1300                	addi	s0,sp,416
-  4c:	0000                	unimp
-  4e:	1300                	addi	s0,sp,416
+  30:	0000                	.insn	2, 0x0000
+  32:	1300                	.insn	2, 0x1300
+  34:	0000                	.insn	2, 0x0000
+  36:	1300                	.insn	2, 0x1300
+  38:	0000                	.insn	2, 0x0000
+  3a:	1300                	.insn	2, 0x1300
+  3c:	0000                	.insn	2, 0x0000
+  3e:	1300                	.insn	2, 0x1300
+  40:	0000                	.insn	2, 0x0000
+  42:	1300                	.insn	2, 0x1300
+  44:	0000                	.insn	2, 0x0000
+  46:	1300                	.insn	2, 0x1300
+  48:	0000                	.insn	2, 0x0000
+  4a:	1300                	.insn	2, 0x1300
+  4c:	0000                	.insn	2, 0x0000
+  4e:	1300                	.insn	2, 0x1300
 
-00000050 <debug_entry>:
+0000000000000050 <debug_entry>:
   50:	7b351073          	csrw	dscratch1,a0
   54:	7b241073          	csrw	dscratch0,s0
-  58:	20070537          	lui	a0,0x20070
-  5c:	01852503          	lw	a0,24(a0) # 20070018 <restore_sp+0x2006fe80>
+  58:	03070537          	lui	a0,0x3070
+  5c:	01852503          	lw	a0,24(a0) # 3070018 <restore_sp+0x306fe80>
   60:	02050463          	beqz	a0,88 <halt_boot>
   64:	00254513          	xori	a0,a0,2
   68:	00051463          	bnez	a0,70 <debug_entry+0x20>
@@ -50,13 +50,13 @@ Disassembly of section .text:
   70:	0ff0000f          	fence
   74:	10000537          	lui	a0,0x10000
   78:	10001437          	lui	s0,0x10001
-  7c:	83040413          	addi	s0,s0,-2000 # 10000830 <restore_sp+0x10000698>
+  7c:	8304041b          	addiw	s0,s0,-2000 # 10000830 <restore_sp+0x10000698>
   80:	00040067          	jr	s0
   84:	00000013          	nop
 
-00000088 <halt_boot>:
-  88:	20070f37          	lui	t5,0x20070
-  8c:	028f2f03          	lw	t5,40(t5) # 20070028 <restore_sp+0x2006fe90>
+0000000000000088 <halt_boot>:
+  88:	03070f37          	lui	t5,0x3070
+  8c:	028f2f03          	lw	t5,40(t5) # 3070028 <restore_sp+0x306fe90>
   90:	000f2f83          	lw	t6,0(t5)
   94:	300f9073          	csrw	mstatus,t6
   98:	004f2f83          	lw	t6,4(t5)
@@ -71,12 +71,12 @@ Disassembly of section .text:
   bc:	018f2103          	lw	sp,24(t5)
   c0:	01cf2183          	lw	gp,28(t5)
   c4:	020f2203          	lw	tp,32(t5)
-  c8:	200702b7          	lui	t0,0x20070
-  cc:	0342a303          	lw	t1,52(t0) # 20070034 <restore_sp+0x2006fe9c>
+  c8:	030702b7          	lui	t0,0x3070
+  cc:	0342a303          	lw	t1,52(t0) # 3070034 <restore_sp+0x306fe9c>
   d0:	0ff0000f          	fence
   d4:	08031a63          	bnez	t1,168 <store_stack>
 
-000000d8 <load_register>:
+00000000000000d8 <load_register>:
   d8:	024f2283          	lw	t0,36(t5)
   dc:	028f2303          	lw	t1,40(t5)
   e0:	02cf2383          	lw	t2,44(t5)
@@ -114,13 +114,13 @@ Disassembly of section .text:
  160:	00000013          	nop
  164:	f25ff06f          	j	88 <halt_boot>
 
-00000168 <store_stack>:
+0000000000000168 <store_stack>:
  168:	0382a303          	lw	t1,56(t0)
  16c:	0ff0000f          	fence
  170:	f66104e3          	beq	sp,t1,d8 <load_register>
  174:	094f0393          	addi	t2,t5,148
 
-00000178 <load_stack>:
+0000000000000178 <load_stack>:
  178:	0003ae83          	lw	t4,0(t2)
  17c:	01d12023          	sw	t4,0(sp)
  180:	00610c63          	beq	sp,t1,198 <restore_sp>
@@ -130,52 +130,52 @@ Disassembly of section .text:
  190:	00000013          	nop
  194:	00000013          	nop
 
-00000198 <restore_sp>:
+0000000000000198 <restore_sp>:
  198:	018f2103          	lw	sp,24(t5)
  19c:	f3dff06f          	j	d8 <load_register>
  1a0:	00000013          	nop
  1a4:	00000013          	nop
- 1a8:	0000                	unimp
- 1aa:	1300                	addi	s0,sp,416
- 1ac:	0000                	unimp
- 1ae:	1300                	addi	s0,sp,416
- 1b0:	0000                	unimp
- 1b2:	1300                	addi	s0,sp,416
- 1b4:	0000                	unimp
- 1b6:	1300                	addi	s0,sp,416
- 1b8:	0000                	unimp
- 1ba:	1300                	addi	s0,sp,416
- 1bc:	0000                	unimp
- 1be:	1300                	addi	s0,sp,416
- 1c0:	0000                	unimp
- 1c2:	1300                	addi	s0,sp,416
- 1c4:	0000                	unimp
- 1c6:	1300                	addi	s0,sp,416
- 1c8:	0000                	unimp
- 1ca:	1300                	addi	s0,sp,416
- 1cc:	0000                	unimp
- 1ce:	1300                	addi	s0,sp,416
- 1d0:	0000                	unimp
- 1d2:	1300                	addi	s0,sp,416
- 1d4:	0000                	unimp
- 1d6:	1300                	addi	s0,sp,416
- 1d8:	0000                	unimp
- 1da:	1300                	addi	s0,sp,416
- 1dc:	0000                	unimp
- 1de:	1300                	addi	s0,sp,416
- 1e0:	0000                	unimp
- 1e2:	1300                	addi	s0,sp,416
- 1e4:	0000                	unimp
- 1e6:	1300                	addi	s0,sp,416
- 1e8:	0000                	unimp
- 1ea:	1300                	addi	s0,sp,416
- 1ec:	0000                	unimp
- 1ee:	1300                	addi	s0,sp,416
- 1f0:	0000                	unimp
- 1f2:	1300                	addi	s0,sp,416
- 1f4:	0000                	unimp
- 1f6:	1300                	addi	s0,sp,416
- 1f8:	0000                	unimp
- 1fa:	1300                	addi	s0,sp,416
- 1fc:	0000                	unimp
- 1fe:	1300                	addi	s0,sp,416
+ 1a8:	0000                	.insn	2, 0x0000
+ 1aa:	1300                	.insn	2, 0x1300
+ 1ac:	0000                	.insn	2, 0x0000
+ 1ae:	1300                	.insn	2, 0x1300
+ 1b0:	0000                	.insn	2, 0x0000
+ 1b2:	1300                	.insn	2, 0x1300
+ 1b4:	0000                	.insn	2, 0x0000
+ 1b6:	1300                	.insn	2, 0x1300
+ 1b8:	0000                	.insn	2, 0x0000
+ 1ba:	1300                	.insn	2, 0x1300
+ 1bc:	0000                	.insn	2, 0x0000
+ 1be:	1300                	.insn	2, 0x1300
+ 1c0:	0000                	.insn	2, 0x0000
+ 1c2:	1300                	.insn	2, 0x1300
+ 1c4:	0000                	.insn	2, 0x0000
+ 1c6:	1300                	.insn	2, 0x1300
+ 1c8:	0000                	.insn	2, 0x0000
+ 1ca:	1300                	.insn	2, 0x1300
+ 1cc:	0000                	.insn	2, 0x0000
+ 1ce:	1300                	.insn	2, 0x1300
+ 1d0:	0000                	.insn	2, 0x0000
+ 1d2:	1300                	.insn	2, 0x1300
+ 1d4:	0000                	.insn	2, 0x0000
+ 1d6:	1300                	.insn	2, 0x1300
+ 1d8:	0000                	.insn	2, 0x0000
+ 1da:	1300                	.insn	2, 0x1300
+ 1dc:	0000                	.insn	2, 0x0000
+ 1de:	1300                	.insn	2, 0x1300
+ 1e0:	0000                	.insn	2, 0x0000
+ 1e2:	1300                	.insn	2, 0x1300
+ 1e4:	0000                	.insn	2, 0x0000
+ 1e6:	1300                	.insn	2, 0x1300
+ 1e8:	0000                	.insn	2, 0x0000
+ 1ea:	1300                	.insn	2, 0x1300
+ 1ec:	0000                	.insn	2, 0x0000
+ 1ee:	1300                	.insn	2, 0x1300
+ 1f0:	0000                	.insn	2, 0x0000
+ 1f2:	1300                	.insn	2, 0x1300
+ 1f4:	0000                	.insn	2, 0x0000
+ 1f6:	1300                	.insn	2, 0x1300
+ 1f8:	0000                	.insn	2, 0x0000
+ 1fa:	1300                	.insn	2, 0x1300
+ 1fc:	0000                	.insn	2, 0x0000
+ 1fe:	1300                	.insn	2, 0x1300

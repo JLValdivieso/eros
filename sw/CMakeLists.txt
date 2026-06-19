@@ -123,6 +123,7 @@ SET(INCLUDE_FOLDERS "-I ${RISCV}/${COMPILER_PREFIX}elf/include \
 # Preliminary list of source files inside the source path
 
 # Make a list of the source files that need to be linked
+# Add more sources to compile here if needed
 FILE(GLOB_RECURSE new_list FOLLOW_SYMLINKS ${SOURCE_PATH}*.c)
 SET( c_dir_list "" )
 SET( app_found 0 )
@@ -140,9 +141,9 @@ FOREACH(file_path IN LISTS new_list)
         if(${file_path} MATCHES "/AES/") # Add it if its in AES
           SET(add 1)
         endif()
-#        if(${file_path} MATCHES "/runtime/") # Add it if its in runtime
-#          SET(add 1)
-#        endif()
+       if(${file_path} MATCHES "/runtime/") # Add it if its in runtime
+         SET(add 1)
+       endif()
     endif()
   elseif( ( ${file_path} MATCHES "/${PROJECT}/" ) AND ( NOT ${file_path} MATCHES ${MAINFILE} ) )
     SET(add 1)
@@ -321,15 +322,13 @@ endif()
 # Set CMAKE flags
 
 # specify the C standard
-set(COMPILER_LINKER_FLAGS "\
-  -march=${CMAKE_SYSTEM_PROCESSOR} \
-  -w -Os -g  -nostdlib  \
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} \
+  -w -Os -g -nostdlib \
   -ffunction-sections \
   -DHOST_BUILD \
   -D${CRT_TYPE} \
   -D${CRTO} \
-  -DportasmHANDLE_INTERRUPT=vSystemIrqHandler\
-")
+  -DportasmHANDLE_INTERRUPT=vSystemIrqHandler")
 set(CMAKE_C_FLAGS ${COMPILER_LINKER_FLAGS})
 
 if (${COMPILER} MATCHES "clang")
@@ -380,10 +379,10 @@ set_target_properties(${MAINFILE}.elf PROPERTIES LINK_DEPENDS "${LINKER_SCRIPT}"
 # Linker control
 SET(CMAKE_EXE_LINKER_FLAGS  "-T ${LINKER_SCRIPT}  \
                             ${INCLUDE_FOLDERS} \
-                             -static ${LINKED_FILES} \
-                             -Wl,-Map=${MAINFILE}.map \
-                             -L ${RISCV}/${COMPILER_PREFIX}elf/lib \
-                             -lc -lm -lgcc -flto \
+                            -nostartfiles \
+                            -static ${LINKED_FILES} \
+                            -Wl,-Map=${MAINFILE}.map \
+                            -lc -lm -lgcc -flto \
                             -ffunction-sections -fdata-sections -specs=nano.specs")
 message( "${Magenta}Lib Folder RISCV-GCC: ${RISCV}/${COMPILER_PREFIX}elf/lib${ColourReset}")
 

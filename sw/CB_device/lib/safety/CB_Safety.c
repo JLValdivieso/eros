@@ -189,7 +189,7 @@ void Safe_Activate(unsigned int mode){
 
 
 void Safe_Stop(unsigned int master){
-volatile unsigned int *Safe_config_reg= SAFE_WRAPPER_CTRL_BASEADDRESS;
+volatile unsigned int *Safe_config_reg = (volatile unsigned int *)(SAFE_WRAPPER_CTRL_BASEADDRESS);
         if(*Safe_config_reg == 0x1 || *Safe_config_reg == 0x2 || *Safe_config_reg == 0x3){
                 if (*(Safe_config_reg+3) == 0x1)
                         Set_Critical_Section(NONE_CRITICAL_SECTION);
@@ -871,7 +871,8 @@ void Check_RF(void){
 
 //Todo adapt this exit to the exit syscall and exit_status
 __attribute__((aligned(4))) void _exit(int exit_status){
-    volatile unsigned int *END_SW_P = SAFE_WRAPPER_CTRL_BASEADDRESS | SAFE_WRAPPER_CTRL_END_SW_ROUTINE_REG_OFFSET;
+    volatile unsigned int *END_SW_P = (volatile unsigned int *)(SAFE_WRAPPER_CTRL_BASEADDRESS +
+                              SAFE_WRAPPER_CTRL_END_SW_ROUTINE_REG_OFFSET);
     *END_SW_P = 0x1;
     asm volatile("fence");
     asm volatile("wfi");

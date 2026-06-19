@@ -31,8 +31,9 @@ extern "C" {
 __attribute__((aligned(4))) void Safe_Activate(unsigned int mode);
 __attribute__((aligned(4))) void Safe_Stop(unsigned int master);
 __attribute__((aligned(4),always_inline)) inline void Set_Critical_Section(unsigned int critical){
-        volatile unsigned int *Priv_Reg = SAFE_WRAPPER_CTRL_BASEADDRESS | SAFE_WRAPPER_CTRL_CRITICAL_SECTION_REG_OFFSET;
-        *Priv_Reg = critical;}
+        volatile unsigned int *Priv_Reg = (volatile unsigned int *)(SAFE_WRAPPER_CTRL_BASEADDRESS +
+                              SAFE_WRAPPER_CTRL_CRITICAL_SECTION_REG_OFFSET);
+        }
         
 __attribute__((aligned(4))) void Store_Checkpoint(void);
 __attribute__((aligned(4))) void Check_RF(void);
