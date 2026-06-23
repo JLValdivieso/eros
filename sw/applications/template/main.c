@@ -9,46 +9,49 @@
 #include "csr_registers.h"
 #include "CB_Safety.h"
 
+#define SIGNATURE ((volatile uint32_t *)0x03063F00)
+
 
 int main(int argc, char *argv[]) 
 {
 
-        /******START******/
-
-        /*
-        
-        **Insert program**
-        
-        */
-
         //Enter Safe mode (TCLS_MODE DCLS_MODE LOCKSTEP_MODE)
-        Safe_Activate(DCLS_MODE);
 
-        /*
-        
-        **Insert program**
-        
-        */
+        int a, b, c;
+        Safe_Activate(LOCKSTEP_MODE);
+        a = 5;
+        b = 10;
 
         //Checkpoint for DCLS configuration
         Store_Checkpoint();
 
-        /*
-        
-        **Insert program**
-        
-        */
-
         //Exit Safe mode (MASTER_CORE0 MASTER_CORE1 MASTER_CORE2)
-        Safe_Stop(MASTER_CORE1); 
+        c = a + b;
+        Safe_Stop(MASTER_CORE2); 
 
-        /*
-        
-        **Insert program**
-        
+        // Safe_Activate(TCLS_MODE);
+
+        // Store_Checkpoint();
+
+        // e = d + d;
+
+        // Safe_Stop(MASTER_CORE2);
+
+         /*
+        * Memory signature for Cheshire verification
         */
+        /*
+     * Memory signature for Cheshire verification
+     */
+        SIGNATURE[0] = 0xDEADBEEF;  // main reached
+        SIGNATURE[1] = a;           // 5
+        SIGNATURE[2] = b;           // 10
+        SIGNATURE[3] = c;           // 15
+        SIGNATURE[4] = 0xCAFEBABE;  // computation completed
 
-        /******END PROGRAM******/
-    
+        while (1) {
+                asm volatile("nop");
+        }
+
         return 0;
 }

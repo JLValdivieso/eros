@@ -641,56 +641,28 @@ if (ENABLE_ILA) begin : gen_cpu_debug
     (* mark_debug = "true" *) logic        dbg_rst_n;
     (* mark_debug = "true" *) logic        dbg_fetch_enable;
 
-    (* mark_debug = "true" *) logic [2:0]  dbg_sleep;
-    (* mark_debug = "true" *) logic [2:0]  dbg_debug_mode;
-    (* mark_debug = "true" *) logic [2:0]  dbg_debug_req;
-
     assign dbg_rst_n        = rst_ni;
     assign dbg_fetch_enable = fetch_enable;
-
-    assign dbg_sleep        = sleep_o;
-    assign dbg_debug_mode   = debug_mode_o;
-    assign dbg_debug_req    = debug_req_i;
-
 
     // --------------------------------------------------
     // HART 0 - Instruction OBI
     // --------------------------------------------------
 
-    (* mark_debug = "true" *) logic        h0_i_req;
     (* mark_debug = "true" *) logic [31:0] h0_i_addr;
-
     (* mark_debug = "true" *) logic        h0_i_gnt;
     (* mark_debug = "true" *) logic        h0_i_rvalid;
-    (* mark_debug = "true" *) logic [31:0] h0_i_rdata;
 
-    assign h0_i_req    = core_instr_req_o[0].req;
     assign h0_i_addr   = core_instr_req_o[0].addr;
-
     assign h0_i_gnt    = core_instr_resp_i[0].gnt;
     assign h0_i_rvalid = core_instr_resp_i[0].rvalid;
-    assign h0_i_rdata  = core_instr_resp_i[0].rdata;
-
 
     // --------------------------------------------------
     // HART 0 - Data OBI
     // --------------------------------------------------
 
-    (* mark_debug = "true" *) logic        h0_d_req;
-    (* mark_debug = "true" *) logic        h0_d_we;
-    (* mark_debug = "true" *) logic [3:0]  h0_d_be;
-    (* mark_debug = "true" *) logic [31:0] h0_d_addr;
-    (* mark_debug = "true" *) logic [31:0] h0_d_wdata;
-
     (* mark_debug = "true" *) logic        h0_d_gnt;
     (* mark_debug = "true" *) logic        h0_d_rvalid;
     (* mark_debug = "true" *) logic [31:0] h0_d_rdata;
-
-    assign h0_d_req    = core_data_req_o[0].req;
-    assign h0_d_we     = core_data_req_o[0].we;
-    assign h0_d_be     = core_data_req_o[0].be;
-    assign h0_d_addr   = core_data_req_o[0].addr;
-    assign h0_d_wdata  = core_data_req_o[0].wdata;
 
     assign h0_d_gnt    = core_data_resp_i[0].gnt;
     assign h0_d_rvalid = core_data_resp_i[0].rvalid;
@@ -701,40 +673,23 @@ if (ENABLE_ILA) begin : gen_cpu_debug
     // HART 1 - Instruction OBI
     // --------------------------------------------------
 
-    (* mark_debug = "true" *) logic        h1_i_req;
     (* mark_debug = "true" *) logic [31:0] h1_i_addr;
-
     (* mark_debug = "true" *) logic        h1_i_gnt;
     (* mark_debug = "true" *) logic        h1_i_rvalid;
-    (* mark_debug = "true" *) logic [31:0] h1_i_rdata;
 
-    assign h1_i_req    = core_instr_req_o[1].req;
     assign h1_i_addr   = core_instr_req_o[1].addr;
 
     assign h1_i_gnt    = core_instr_resp_i[1].gnt;
     assign h1_i_rvalid = core_instr_resp_i[1].rvalid;
-    assign h1_i_rdata  = core_instr_resp_i[1].rdata;
 
 
     // --------------------------------------------------
     // HART 1 - Data OBI
     // --------------------------------------------------
 
-    (* mark_debug = "true" *) logic        h1_d_req;
-    (* mark_debug = "true" *) logic        h1_d_we;
-    (* mark_debug = "true" *) logic [3:0]  h1_d_be;
-    (* mark_debug = "true" *) logic [31:0] h1_d_addr;
-    (* mark_debug = "true" *) logic [31:0] h1_d_wdata;
-
     (* mark_debug = "true" *) logic        h1_d_gnt;
     (* mark_debug = "true" *) logic        h1_d_rvalid;
     (* mark_debug = "true" *) logic [31:0] h1_d_rdata;
-
-    assign h1_d_req    = core_data_req_o[1].req;
-    assign h1_d_we     = core_data_req_o[1].we;
-    assign h1_d_be     = core_data_req_o[1].be;
-    assign h1_d_addr   = core_data_req_o[1].addr;
-    assign h1_d_wdata  = core_data_req_o[1].wdata;
 
     assign h1_d_gnt    = core_data_resp_i[1].gnt;
     assign h1_d_rvalid = core_data_resp_i[1].rvalid;
@@ -745,40 +700,22 @@ if (ENABLE_ILA) begin : gen_cpu_debug
     // HART 2 - Instruction OBI
     // --------------------------------------------------
 
-    (* mark_debug = "true" *) logic        h2_i_req;
     (* mark_debug = "true" *) logic [31:0] h2_i_addr;
-
     (* mark_debug = "true" *) logic        h2_i_gnt;
     (* mark_debug = "true" *) logic        h2_i_rvalid;
-    (* mark_debug = "true" *) logic [31:0] h2_i_rdata;
 
-    assign h2_i_req    = core_instr_req_o[2].req;
     assign h2_i_addr   = core_instr_req_o[2].addr;
-
     assign h2_i_gnt    = core_instr_resp_i[2].gnt;
     assign h2_i_rvalid = core_instr_resp_i[2].rvalid;
-    assign h2_i_rdata  = core_instr_resp_i[2].rdata;
 
 
     // --------------------------------------------------
     // HART 2 - Data OBI
     // --------------------------------------------------
 
-    (* mark_debug = "true" *) logic        h2_d_req;
-    (* mark_debug = "true" *) logic        h2_d_we;
-    (* mark_debug = "true" *) logic [3:0]  h2_d_be;
-    (* mark_debug = "true" *) logic [31:0] h2_d_addr;
-    (* mark_debug = "true" *) logic [31:0] h2_d_wdata;
-
     (* mark_debug = "true" *) logic        h2_d_gnt;
     (* mark_debug = "true" *) logic        h2_d_rvalid;
     (* mark_debug = "true" *) logic [31:0] h2_d_rdata;
-
-    assign h2_d_req    = core_data_req_o[2].req;
-    assign h2_d_we     = core_data_req_o[2].we;
-    assign h2_d_be     = core_data_req_o[2].be;
-    assign h2_d_addr   = core_data_req_o[2].addr;
-    assign h2_d_wdata  = core_data_req_o[2].wdata;
 
     assign h2_d_gnt    = core_data_resp_i[2].gnt;
     assign h2_d_rvalid = core_data_resp_i[2].rvalid;
