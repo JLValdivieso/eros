@@ -21,6 +21,7 @@ dependencies:
   axi2apb:              { git: "https://github.com/pulp-platform/axi2apb.git",               rev: master                                  }
   
   axi_slice:            { git: "https://github.com/pulp-platform/axi_slice.git",             rev: master                                  }
+  axi_obi:              { git: "https://github.com/pulp-platform/axi_obi.git",               rev: main                                    }
 
   cv32e20:              { path: "./vendor/openhwgroup_cv32e20"                                                                            }
   cluster_interconnect: { path: "./vendor/pulp_platform_cluster_interconnect"                                                             }
@@ -62,6 +63,7 @@ sources:
       - wrapper/apb_to_obi_wrapper.sv
       - wrapper/eros_top_wrapper.sv
       - wrapper/eros_top_wrapper_axi.sv
+      - wrapper/eros_top_wrapper_axi_v2.sv
 
 
       - target: any(simulation,test)
