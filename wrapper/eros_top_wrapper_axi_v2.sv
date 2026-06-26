@@ -19,6 +19,7 @@ module eros_top_wrapper_axi_v2
     parameter S00_AXI_DATA_WIDTH        = 32,
     parameter S00_AXI_ID_WIDTH_SLAVE    = 32,
     parameter S00_AXI_USER_WIDTH        = 32,
+    parameter int unsigned MaxTrans     = 4,
 
     parameter type axi_slv_req_t        = logic,
     parameter type axi_slv_rsp_t        = logic,
@@ -74,75 +75,35 @@ module eros_top_wrapper_axi_v2
     obi_resp_t    axi_obi_master_resp;
 
 
-//////////////////
-// AXI64 -> OBI //
-//////////////////
-
-// -----------------------------------------------------------------------------
-// AXI -> OBI bridge
-// -----------------------------------------------------------------------------
+////////////////////
+// AXI64 -> OBI32 //
+////////////////////
 
 `OBI_TYPEDEF_DEFAULT_ALL(pulp_obi, obi_pkg::ObiDefaultConfig)
 
 pulp_obi_req_t axi2obi_req;
 pulp_obi_rsp_t axi2obi_rsp;
 
-// -----------------------------------------------------------------------------
-// Auxiliary signals required by axi_to_obi.
-//
-// EROS does not make use of AXI IDs, USER signals or OBI optional fields.
-// These signals are connected only to satisfy the generic bridge interface and
-// are optimized away during synthesis.
-// -----------------------------------------------------------------------------
 
-logic [S00_AXI_DATA_WIDTH/32-1:0][S00_AXI_ID_WIDTH_SLAVE-1:0] req_aw_id;
-logic [S00_AXI_DATA_WIDTH/32-1:0][S00_AXI_ID_WIDTH_SLAVE-1:0] req_ar_id;
+// (* mark_debug = "true" *) logic        dbg_req;
+// (* mark_debug = "true" *) logic        dbg_we;
+// (* mark_debug = "true" *) logic [31:0] dbg_addr;
+// (* mark_debug = "true" *) logic [31:0] dbg_wdata;
+// (* mark_debug = "true" *) logic [3:0]  dbg_be;
 
-logic [S00_AXI_DATA_WIDTH/32-1:0][S00_AXI_USER_WIDTH-1:0] req_aw_user;
-logic [S00_AXI_DATA_WIDTH/32-1:0][S00_AXI_USER_WIDTH-1:0] req_w_user;
-logic [S00_AXI_DATA_WIDTH/32-1:0][S00_AXI_USER_WIDTH-1:0] req_ar_user;
+// (* mark_debug = "true" *) logic        dbg_gnt;
+// (* mark_debug = "true" *) logic        dbg_rvalid;
+// (* mark_debug = "true" *) logic [31:0] dbg_rdata;
 
-// OBI IDs (ObiDefaultConfig.IdWidth = 1)
-logic [S00_AXI_DATA_WIDTH/32-1:0][obi_pkg::ObiDefaultConfig.IdWidth-1:0] req_write_aid;
-logic [S00_AXI_DATA_WIDTH/32-1:0][obi_pkg::ObiDefaultConfig.IdWidth-1:0] req_read_aid;
+// assign dbg_req   = axi2obi_req.req;
+// assign dbg_we    = axi2obi_req.a.we;
+// assign dbg_addr  = axi2obi_req.a.addr;
+// assign dbg_be    = axi2obi_req.a.be;
+// assign dbg_wdata = axi2obi_req.a.wdata;
 
-// Optional user fields (width = 1 because OptionalCfg widths are 0)
-logic [S00_AXI_DATA_WIDTH/32-1:0][0:0] req_write_auser;
-logic [S00_AXI_DATA_WIDTH/32-1:0][0:0] req_write_wuser;
-logic [S00_AXI_DATA_WIDTH/32-1:0][0:0] req_read_auser;
-
-logic [S00_AXI_USER_WIDTH-1:0] rsp_b_user;
-logic [S00_AXI_USER_WIDTH-1:0] rsp_r_user;
-
-logic [S00_AXI_USER_WIDTH-1:0] rsp_write_aw_user;
-logic [S00_AXI_USER_WIDTH-1:0] rsp_write_w_user;
-logic [S00_AXI_DATA_WIDTH/32-1:0] rsp_write_bank_strb;
-
-logic rsp_write_last;
-logic rsp_write_hs;
-
-logic [S00_AXI_DATA_WIDTH/32-1:0][obi_pkg::ObiDefaultConfig.IdWidth-1:0] rsp_write_rid;
-logic [S00_AXI_DATA_WIDTH/32-1:0][obi_pkg::ObiDefaultConfig.IdWidth-1:0] rsp_read_rid;
-
-logic [S00_AXI_DATA_WIDTH/32-1:0][0:0] rsp_write_ruser;
-logic [S00_AXI_DATA_WIDTH/32-1:0][0:0] rsp_read_ruser;
-
-logic rsp_read_ar_user;
-logic [S00_AXI_DATA_WIDTH/32-1:0] rsp_read_size_enable;
-
-// -----------------------------------------------------------------------------
-// Unused optional fields
-// -----------------------------------------------------------------------------
-
-assign req_write_aid   = '0;
-assign req_read_aid    = '0;
-
-assign req_write_auser = '0;
-assign req_write_wuser = '0;
-assign req_read_auser  = '0;
-
-assign rsp_b_user = '0;
-assign rsp_r_user = '0;
+// assign dbg_gnt    = axi2obi_rsp.gnt;
+// assign dbg_rvalid = axi2obi_rsp.rvalid;
+// assign dbg_rdata  = axi2obi_rsp.r.rdata;
 
 
 axi_to_obi #(
@@ -151,6 +112,7 @@ axi_to_obi #(
     .AxiDataWidth (S00_AXI_DATA_WIDTH),
     .AxiIdWidth   (S00_AXI_ID_WIDTH_SLAVE),
     .AxiUserWidth (S00_AXI_USER_WIDTH),
+    .MaxTrans      (MaxTrans),
 
     .axi_req_t    (axi_slv_req_t),
     .axi_rsp_t    (axi_slv_rsp_t),
@@ -171,36 +133,36 @@ axi_to_obi #(
     .obi_req_o                (axi2obi_req),
     .obi_rsp_i                (axi2obi_rsp),
 
-    .req_aw_id_o              (req_aw_id),
-    .req_aw_user_o            (req_aw_user),
-    .req_w_user_o             (req_w_user),
+    .req_aw_id_o              ( ),
+    .req_aw_user_o            ( ),
+    .req_w_user_o             ( ),
 
-    .req_write_aid_i          (req_write_aid),
-    .req_write_auser_i        (req_write_auser),
-    .req_write_wuser_i        (req_write_wuser),
+    .req_write_aid_i          ('0),
+    .req_write_auser_i        ('0),
+    .req_write_wuser_i        ('0),
 
-    .req_ar_id_o              (req_ar_id),
-    .req_ar_user_o            (req_ar_user),
+    .req_ar_id_o              ( ),
+    .req_ar_user_o            ( ),
 
-    .req_read_aid_i           (req_read_aid),
-    .req_read_auser_i         (req_read_auser),
+    .req_read_aid_i           ('0),
+    .req_read_auser_i         ('0),
 
-    .rsp_write_aw_user_o      (rsp_write_aw_user),
-    .rsp_write_w_user_o       (rsp_write_w_user),
-    .rsp_write_bank_strb_o    (rsp_write_bank_strb),
-    .rsp_write_rid_o          (rsp_write_rid),
-    .rsp_write_ruser_o        (rsp_write_ruser),
-    .rsp_write_last_o         (rsp_write_last),
-    .rsp_write_hs_o           (rsp_write_hs),
+    .rsp_write_aw_user_o      ( ),
+    .rsp_write_w_user_o       ( ),
+    .rsp_write_bank_strb_o    ( ),
+    .rsp_write_rid_o          ( ),
+    .rsp_write_ruser_o        ( ),
+    .rsp_write_last_o         ( ),
+    .rsp_write_hs_o           ( ),
 
-    .rsp_b_user_i             (rsp_b_user),
+    .rsp_b_user_i             ('0),
 
-    .rsp_read_ar_user_o       (rsp_read_ar_user),
-    .rsp_read_size_enable_o   (rsp_read_size_enable),
-    .rsp_read_rid_o           (rsp_read_rid),
-    .rsp_read_ruser_o         (rsp_read_ruser),
+    .rsp_read_ar_user_o       ( ),
+    .rsp_read_size_enable_o   ( ),
+    .rsp_read_rid_o           ( ),
+    .rsp_read_ruser_o         ( ),
 
-    .rsp_r_user_i             (rsp_r_user)
+    .rsp_r_user_i             ('0)
 );
 
 // -----------------------------------------------------------------------------
