@@ -84,28 +84,6 @@ module eros_top_wrapper_axi_v2
 pulp_obi_req_t axi2obi_req;
 pulp_obi_rsp_t axi2obi_rsp;
 
-
-// (* mark_debug = "true" *) logic        dbg_req;
-// (* mark_debug = "true" *) logic        dbg_we;
-// (* mark_debug = "true" *) logic [31:0] dbg_addr;
-// (* mark_debug = "true" *) logic [31:0] dbg_wdata;
-// (* mark_debug = "true" *) logic [3:0]  dbg_be;
-
-// (* mark_debug = "true" *) logic        dbg_gnt;
-// (* mark_debug = "true" *) logic        dbg_rvalid;
-// (* mark_debug = "true" *) logic [31:0] dbg_rdata;
-
-// assign dbg_req   = axi2obi_req.req;
-// assign dbg_we    = axi2obi_req.a.we;
-// assign dbg_addr  = axi2obi_req.a.addr;
-// assign dbg_be    = axi2obi_req.a.be;
-// assign dbg_wdata = axi2obi_req.a.wdata;
-
-// assign dbg_gnt    = axi2obi_rsp.gnt;
-// assign dbg_rvalid = axi2obi_rsp.rvalid;
-// assign dbg_rdata  = axi2obi_rsp.r.rdata;
-
-
 axi_to_obi #(
     .ObiCfg       (obi_pkg::ObiDefaultConfig),
     .AxiAddrWidth (S00_AXI_ADDR_WIDTH),
