@@ -71,6 +71,28 @@ NOTE:   String length must be evenly divisible by 16byte (str_len % 16 == 0)
 typedef uint8_t state_t[4][4];
 
 
+#include "base_address.h"        // PRIVATE_REG_BASEADDRESS
+#include "CPU_Private_regs.h"    // CPU_PRIVATE_CORE_ID_CORE_ID_OFFSET
+
+#define INTERNAL_PRIVATE_REG_ID  (CPU_PRIVATE_CORE_ID_CORE_ID_OFFSET + PRIVATE_REG_BASEADDRESS) // 0x03040000
+#define EROS_INJECT_ADDR         0x0306A100
+
+static void eros_maybe_inject(state_t* state)
+{
+    volatile unsigned int *injection = (volatile unsigned int *)EROS_INJECT_ADDR;
+    volatile unsigned int *core_id   = (volatile unsigned int *)INTERNAL_PRIVATE_REG_ID; 
+
+    if (injection[0] == 1 && injection[1] == 0) {
+        injection[0] = 0;   
+        // Left-Shift 2 bits. for DMR mode
+        // Core0 (001) -> (000)
+        // Core1 (010) -> (000)
+        // Core2 (100) -> (001) Erroneous value
+        (*state)[1][1] = (*state)[1][1] + ((*core_id) >> 2);
+    }
+}
+
+
 
 // The lookup-tables are marked const so they can be placed in read-only storage instead of RAM
 // The numbers below can be computed dynamically trading ROM for RAM - 
@@ -422,6 +444,9 @@ static void Cipher(state_t* state, const uint8_t* RoundKey)
 
   // Add the First round key to the state before starting the rounds.
   AddRoundKey(0, state, RoundKey);
+
+  eros_maybe_inject(state);      // inject once, before the round loop
+
   // There will be Nr rounds.
   // The first Nr-1 rounds are identical.
   // These Nr rounds are executed in the loop below.

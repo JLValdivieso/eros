@@ -36,3 +36,7 @@ The block diagram below shows the EROS Safe Accelerator Platform.
     ├── util
     ├── Makefile
     └── README.md
+
+
+compilation cheshire:
+make app-cbcore     PROJECT=hello_world     RISCV=/opt/riscv/eros     COMPILER_PREFIX=riscv64-unknown-     ARCH=rv32imc_zicsr 

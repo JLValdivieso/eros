@@ -9,7 +9,7 @@
 #include "csr_registers.h"
 #include "CB_Safety.h"
 
-#define SIGNATURE ((volatile uint32_t *)0x03063F00)
+#define SIGNATURE ((volatile uint32_t *)0x0306A000)
 
 
 int main(int argc, char *argv[]) 
@@ -18,7 +18,7 @@ int main(int argc, char *argv[])
         //Enter Safe mode (TCLS_MODE DCLS_MODE LOCKSTEP_MODE)
 
         int a, b, c;
-        Safe_Activate(LOCKSTEP_MODE);
+        Safe_Activate(DCLS_MODE);
         a = 5;
         b = 10;
 
@@ -48,10 +48,6 @@ int main(int argc, char *argv[])
         SIGNATURE[2] = b;           // 10
         SIGNATURE[3] = c;           // 15
         SIGNATURE[4] = 0xCAFEBABE;  // computation completed
-
-        while (1) {
-                asm volatile("nop");
-        }
 
         return 0;
 }
