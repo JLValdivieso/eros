@@ -77,7 +77,7 @@ typedef uint8_t state_t[4][4];
 #define INTERNAL_PRIVATE_REG_ID  (CPU_PRIVATE_CORE_ID_CORE_ID_OFFSET + PRIVATE_REG_BASEADDRESS) // 0x03040000
 #define EROS_INJECT_ADDR         0x0306A100
 
-static void eros_maybe_inject(state_t* state)
+static void eros_fault_inject(state_t* state)
 {
     volatile unsigned int *injection = (volatile unsigned int *)EROS_INJECT_ADDR;
     volatile unsigned int *core_id   = (volatile unsigned int *)INTERNAL_PRIVATE_REG_ID; 
@@ -445,7 +445,7 @@ static void Cipher(state_t* state, const uint8_t* RoundKey)
   // Add the First round key to the state before starting the rounds.
   AddRoundKey(0, state, RoundKey);
 
-  eros_maybe_inject(state);      // inject once, before the round loop
+  eros_fault_inject(state);      // inject once, before the round loop
 
   // There will be Nr rounds.
   // The first Nr-1 rounds are identical.

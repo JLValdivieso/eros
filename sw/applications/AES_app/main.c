@@ -43,7 +43,7 @@ int main(int argc, char *argv[])
 
     SIGNATURE[0] = 0xDEADBEEF;   // main reached
 
-    Safe_Activate(TCLS_MODE); //Enter Safe mode (TCLS_MODE DCLS_MODE LOCKSTEP_MODE)
+    Safe_Activate(DCLS_MODE); //Enter Safe mode (TCLS_MODE DCLS_MODE LOCKSTEP_MODE)
 
     AES_init_ctx(&ctx, key);     // key expansion (round keys stored in 'ctx', stack)
 
