@@ -32,7 +32,7 @@ MEMORY
 SECTIONS
 {
   /* we want a fixed entry point */
-  PROVIDE(__boot_address = 0xF0000000 + 0x00020180);
+  PROVIDE(__boot_address =  0xF0000000 + 0x00020180);
 
   /* stack and heap related settings */
   __stack_size = DEFINED(__stack_size) ? __stack_size : 0x800;

@@ -16,7 +16,7 @@ print-inc-folders:
 	@echo "Directorios de inclusión:"
 	@echo $(INC_FOLDERS_GCC)
 
-all: $(CB_boot_rom) CB_boot_rom.dump
+all: $(CB_boot_rom) clean
 
 %.sv: %.img
 	$(PYTHON) gen_rom.py $<
@@ -34,4 +34,4 @@ all: $(CB_boot_rom) CB_boot_rom.dump
 	$(OBJDUMP) -d $< --disassemble-all --disassemble-zeroes  --section=.text --section=.debug > $@
 
 clean:
-	rm -f *.img *.bin *.sv .*dump
+	rm -f *.img *.bin *.sv *.dump

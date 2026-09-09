@@ -28,7 +28,8 @@ module bus_system
     parameter type obi_req_t            = logic,
     parameter type obi_resp_t           = logic,
     parameter NHARTS  = 3,
-    parameter N_BANKS = 2
+    parameter N_BANKS = 2,
+    parameter NMASTER_COPR_ACC = 1
 ) (
     input logic clk_i,
     input logic rst_ni,
@@ -41,8 +42,8 @@ module bus_system
     output obi_resp_t [NHARTS-1 : 0] core_data_resp_o,
 
     // Internal master acc
-    input  obi_req_t   [1:0] acc_req_i,
-    output obi_resp_t  [1:0] acc_resp_o,
+    input  obi_req_t   [NMASTER_COPR_ACC-1:0] copr_acc_req_i,
+    output obi_resp_t  [NMASTER_COPR_ACC-1:0] copr_acc_resp_o,
 
     // Internal slave ports
     output obi_req_t  peripheral_slave_req_o,
@@ -105,9 +106,18 @@ module bus_system
   assign int_master_req[eros_pkg::CORE2_DATA_IDX] = demux_core_data_req[2][0];
   // External master requests
   assign int_master_req[eros_pkg::EXTERNAL_MASTER_IDX] = ext_master_req_i;
-  // Acc master requests
-  assign int_master_req[eros_pkg::ACC_READ_MASTER_IDX] = acc_req_i[0];
-  assign int_master_req[eros_pkg::ACC_WRITE_MASTER_IDX] = acc_req_i[1];
+  // Copr/Acc master requests
+  if (eros_pkg::XInterface) begin
+    for (genvar i = 0; i < eros_pkg::NMASTER_COPROC; i++) begin : gen_copr_req
+      assign int_master_req[eros_pkg::ACC_COPR_BASE_IDX + i] = copr_acc_req_i[i];
+    end
+  end
+  if (eros_pkg::MMAcc) begin
+    for (genvar i = 0; i < eros_pkg::NMASTER_ACC; i++) begin : gen_acc_req
+      assign int_master_req[eros_pkg::NMASTER_ACC + i] = copr_acc_req_i[i];
+    end
+  end
+
   // Internal master responses
   assign core_instr_resp_o[0] = int_master_resp[eros_pkg::CORE0_INSTR_IDX];
   assign demux_core_data_resp[0][0] = int_master_resp[eros_pkg::CORE0_DATA_IDX];
@@ -117,10 +127,17 @@ module bus_system
   assign demux_core_data_resp[2][0] = int_master_resp[eros_pkg::CORE2_DATA_IDX];
   // External master responses
   assign ext_master_resp_o = int_master_resp[eros_pkg::EXTERNAL_MASTER_IDX];
-  // Accc master requests
-  assign acc_resp_o[0] = int_master_resp[eros_pkg::ACC_READ_MASTER_IDX];
-  assign acc_resp_o[1] = int_master_resp[eros_pkg::ACC_WRITE_MASTER_IDX];
-
+  // Copr/Acc master requests
+  if (eros_pkg::XInterface) begin
+    for (genvar i = 0; i < eros_pkg::NMASTER_COPROC; i++) begin : gen_copr_resp
+      assign copr_acc_resp_o[i] = int_master_resp[eros_pkg::ACC_COPR_BASE_IDX + i];
+    end
+  end
+  if (eros_pkg::MMAcc) begin
+    for (genvar i = 0; i < eros_pkg::NMASTER_ACC; i++) begin : gen_acc_resp
+      assign copr_acc_resp_o[i] = int_master_resp[eros_pkg::ACC_COPR_BASE_IDX + i];
+    end
+  end
   // Internal slave requests
   assign peripheral_slave_req_o = int_slave_req[eros_pkg::PERIPHERAL_IDX];
   assign ram_req_o[0] = int_slave_req[eros_pkg::MEMORY_RAM0_IDX];
@@ -137,6 +154,8 @@ module bus_system
 //  assign int_slave_resp[eros_pkg::SAFE_CPU_REGISTER_IDX] = int_wrapper_csr_resp;
   // External slave responses
   assign int_slave_resp[eros_pkg::EXTERNAL_PERIPHERAL_IDX] = ext_slave_resp_i;
+
+
   // Internal system crossbar
   // ------------------------
   xbar_system #(

@@ -23,7 +23,10 @@ module obi_pipelined_delay #(
 
   for (genvar i = 0; i < NDELAY; i++) begin
     if (i == 0) begin
-      obi_sngreg obi_sngreg_i (
+      obi_sngreg #(
+          .obi_req_t            (obi_req_t  ),
+          .obi_resp_t           (obi_resp_t )
+      ) obi_sngreg_i (
           .clk_i,
           .rst_ni,
           .clear_pipeline,
@@ -33,7 +36,10 @@ module obi_pipelined_delay #(
           .core_instr_resp_gnt_o(core_instr_resp_gnt_o)
       );
     end else if (i == NDELAY - 1) begin
-      obi_sngreg obi_sngreg_i (
+      obi_sngreg #(
+          .obi_req_t            (obi_req_t  ),
+          .obi_resp_t           (obi_resp_t )
+      ) obi_sngreg_i (
           .clk_i,
           .rst_ni,
           .clear_pipeline,
@@ -43,7 +49,10 @@ module obi_pipelined_delay #(
           .core_instr_resp_gnt_o(core_instr_resp_gnt_s[i-1])
       );
     end else begin
-      obi_sngreg obi_sngreg_i (
+      obi_sngreg #(
+          .obi_req_t            (obi_req_t  ),
+          .obi_resp_t           (obi_resp_t )
+      ) obi_sngreg_i (
           .clk_i,
           .rst_ni,
           .clear_pipeline,

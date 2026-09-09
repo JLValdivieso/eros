@@ -25,6 +25,8 @@ module safe_FSM #(
     input logic [NHARTS-1:0] Master_Core_i,
     output logic [NHARTS-1:0] Interrupt_Sync_o,
     output logic [NHARTS-1:0] Interrupt_swResync_o,
+    output logic [NHARTS-1:0] Interrupt_Host_Sync_o,
+    output logic [NHARTS-1:0] Interrupt_Host_Desync_o,
     output logic [NHARTS-1:0] Interrupt_Halt_o,
     output logic Single_Bus_o,
     output logic [NHARTS-1:0] Dmr_config_o,
@@ -71,6 +73,7 @@ module safe_FSM #(
     TMR_MS_INTRSYNC,
     TMR_SYNC,
     TMR_END_SYNC,
+    TMR_END,
     TMR_TO_SINGLE,
     TMR_SYNCINTC,
     TMR_SWSYNC
@@ -86,6 +89,7 @@ module safe_FSM #(
     DMR_MS_INTRSYNC,
     DMR_SYNC,
     DMR_END_SYNC,
+    DMR_END,
     DMR_TO_SINGLE,
     DMR_STOP,
     DMR_INTC_RECOVERY,
@@ -103,6 +107,7 @@ module safe_FSM #(
 
   logic [NHARTS-1:0] Switch_SingletoTMR_s;
   logic [NHARTS-1:0] Switch_TMRtoSingle_s;
+  logic [NHARTS-1:0] Switch_hostTMRtoSingle_s;
   logic Enable_Switch_s;
 
 
@@ -127,6 +132,7 @@ module safe_FSM #(
   logic [NHARTS-1:0] DMR_dbg_halt_req_general_s;
   logic [NHARTS-1:0] Switch_SingletoDMR_s;
   logic [NHARTS-1:0] Switch_DMRtoSingle_s;
+  logic [NHARTS-1:0] Switch_hostDMRtoSingle_s;
   logic [NHARTS-1:0] dual_mode_dmr_s;
   logic [NHARTS-1:0] dmr_dmr_config_s;
   logic [NHARTS-1:0] Interrupt_Sync_DMR_s;
@@ -415,18 +421,23 @@ module safe_FSM #(
         TMR_SYNC: begin
           if (((Hart_wfi_i[0] == 1'b1 && Hart_wfi_i[1] == 1'b1 && Hart_wfi_i[2])) && End_sw_routine_i ==1'b1)
             ctrl_tmr_fsm_ns[i] = TMR_IDLE;
-          else if ((Hart_wfi_i[0] == 1'b1 && Hart_wfi_i[1] == 1'b1 && Hart_wfi_i[2]) == 1'b1 && Safe_configuration_i!=2'b01)
+          else if (Safe_configuration_i!=2'b01)
             ctrl_tmr_fsm_ns[i] = TMR_END_SYNC;
           else if (tmr_error_s == 1'b1) ctrl_tmr_fsm_ns[i] = TMR_SYNCINTC;
           else ctrl_tmr_fsm_ns[i] = TMR_SYNC;
         end
 
         TMR_END_SYNC: begin
+          if (Hart_wfi_i[0] == 1'b1 && Hart_wfi_i[1] == 1'b1 && Hart_wfi_i[2]) ctrl_tmr_fsm_ns[i] = TMR_END;
+          else ctrl_tmr_fsm_ns[i] = TMR_END_SYNC;
+        end
+
+        TMR_END: begin
           if (Hart_intc_ack_i[i] == 1'b1 && Master_Core_i[i] == 1'b1)  //Master
             ctrl_tmr_fsm_ns[i] = TMR_IDLE;
           else if (Hart_wfi_i[i] == 1'b1 && Master_Core_i[i] == 1'b0)  //Non Masters
             ctrl_tmr_fsm_ns[i] = TMR_IDLE;
-          else ctrl_tmr_fsm_ns[i] = TMR_END_SYNC;
+          else ctrl_tmr_fsm_ns[i] = TMR_END;
         end
 
         //***SW TMR Recovery***//
@@ -460,6 +471,7 @@ module safe_FSM #(
       Switch_SingletoTMR_s[i]      = 1'b0;
       Switch_TMRtoSingle_s[i]      = 1'b0;
       Interrupt_sw_TMR_Resync_s[i] = 1'b0;
+      Switch_hostTMRtoSingle_s[i] = 1'b0;
       unique case (ctrl_tmr_fsm_cs[i])
 
         TMR_START: begin
@@ -506,6 +518,12 @@ module safe_FSM #(
         end
 
         TMR_END_SYNC: begin
+          single_bus_s[i] = 1'b1;
+          tmr_voter_enable_s[i] = 1'b1;
+          Switch_hostTMRtoSingle_s[i] = 1'b1;
+        end
+
+        TMR_END: begin
           if (Master_Core_i[i] == 1'b1) begin
             Interrupt_Sync_TMR_s[i] = 1'b1;
             Switch_TMRtoSingle_s[i] = 1'b1;
@@ -609,7 +627,7 @@ module safe_FSM #(
         DMR_SYNC: begin
           if (((Hart_wfi_i[0] == 1'b1 && Hart_wfi_i[1] == 1'b1 && Hart_wfi_i[2]== 1'b1)) && End_sw_routine_i ==1'b1)
             ctrl_dmr_fsm_ns[i] = DMR_IDLE;
-          else if ((Hart_wfi_i[0] == 1'b1 && Hart_wfi_i[1] == 1'b1 && Hart_wfi_i[2] == 1'b1) == 1'b1 && (Safe_configuration_i!=2'b10 | Safe_configuration_i!=2'b11))
+          else if (Safe_configuration_i!=2'b10 & Safe_configuration_i!=2'b11)
             ctrl_dmr_fsm_ns[i] = DMR_END_SYNC;
           else if (dmr_error_s == 1'b1) ctrl_dmr_fsm_ns[i] = DMR_STOP;
           else ctrl_dmr_fsm_ns[i] = DMR_SYNC;
@@ -631,11 +649,16 @@ module safe_FSM #(
         end
 
         DMR_END_SYNC: begin
+          if (Hart_wfi_i[0] == 1'b1 && Hart_wfi_i[1] == 1'b1 && Hart_wfi_i[2] == 1'b1) ctrl_dmr_fsm_ns[i] = DMR_END;
+          else ctrl_dmr_fsm_ns[i] = DMR_END_SYNC;
+        end
+
+        DMR_END: begin
           if (Hart_intc_ack_i[i] == 1'b1 && Master_Core_i[i] == 1'b1)  //Master
             ctrl_dmr_fsm_ns[i] = DMR_IDLE;
           else if (Hart_wfi_i[i] == 1'b1 && Master_Core_i[i] == 1'b0)  //Non Masters
             ctrl_dmr_fsm_ns[i] = DMR_IDLE;
-          else ctrl_dmr_fsm_ns[i] = DMR_END_SYNC;
+          else ctrl_dmr_fsm_ns[i] = DMR_END;
         end
 
         default: begin
@@ -658,6 +681,7 @@ module safe_FSM #(
       dbg_halt_dmr_recovery[i] = 1'b0;
       dmr_delayed_s[i] = 1'b0;
       DMR_Rec_s[i] = 1'b0;
+      Switch_hostDMRtoSingle_s[i]= 1'b0;
       unique case (ctrl_dmr_fsm_cs[i])
 
         DMR_IDLE: begin
@@ -707,6 +731,12 @@ module safe_FSM #(
         end
 
         DMR_END_SYNC: begin
+          dual_mode_dmr_s[i] = 1'b1;
+          DMR_Single_s[i] = 1'b1;
+          Switch_hostDMRtoSingle_s[i] = 1'b1;
+        end
+
+        DMR_END: begin
           if (Master_Core_i[i] == 1'b1) begin
             Interrupt_Sync_DMR_s[i] = 1'b1;
             Switch_DMRtoSingle_s[i] = 1'b1;
@@ -811,7 +841,26 @@ module safe_FSM #(
 
   assign tmr_error_s = (~tmr_critical_section_i & (tmr_error_i | tmr_error_ff[1])) | (tmr_critical_section_i &
                                                                     (~tmr_error_ff[0]) & tmr_error_ff[1] & tmr_error_i);
-  //####################//
+  //#######################//
+
+  //###Host Sync/Desync###//
+  always_comb begin
+    if (Enable_Switch_s) begin
+      if (Master_Core_i == 3'b001) begin
+        Interrupt_Host_Sync_o = 3'b001;
+      end else if (Master_Core_i == 3'b010) begin
+        Interrupt_Host_Sync_o = 3'b010;
+      end else  begin
+        Interrupt_Host_Sync_o = 3'b100;
+      end
+    end else begin
+        Interrupt_Host_Sync_o = 3'b000;
+    end
+  end
+
+  assign Interrupt_Host_Desync_o = Switch_hostDMRtoSingle_s | Switch_hostTMRtoSingle_s;
+  //######################//
+
 endmodule
 
 

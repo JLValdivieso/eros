@@ -49,15 +49,6 @@
       fields: [
         { bits: "0", name: "Start", desc: "Start" }
       ]
-    },    
-    { name:     "boot_address",
-      desc:     "boot_address",
-      resval:   "0x00"
-      swaccess: "rw",
-      hwaccess: "none",
-      fields: [
-        { bits: "31:0", name: "BOOT_ADDR", desc: "BOOT_ADDR" }
-      ]
     },
     { name:     "External_Debug_Req",
       desc:     "External Debug Request Signal",
@@ -114,9 +105,9 @@
           desc: "Status of Interrupt, write '0' to clear current interrupt"
         }
       ]
-    },     
-    { name:     "CB_HEEP_STATUS",
-      desc:     "CB_HEEP_STATUS",
+    },
+    { name:     "EROS_STATUS",
+      desc:     "EROS_STATUS",
       swaccess: "ro",
       hwaccess: "hwo",
       fields: [

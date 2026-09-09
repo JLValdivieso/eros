@@ -364,7 +364,32 @@ module cpu_system
         .X_MISA(fpu_ss_pkg::X_MISA)
     ) ext_if_core0 ();
 
-    
+    ${IF CPUConfiguration.CPU == CV32E40PX && AcceleratorAndCoprocessor.CoprocessorName == coprocessor_example}
+    //   /*** Put here coprocessor ***/
+    //   fpu_ss_wrapper #(
+    //       .PULP_ZFINX(ZFINX),
+    //       .INPUT_BUFFER_DEPTH(1),
+    //       .OUT_OF_ORDER(0),
+    //       .FORWARDING(1),
+    //       .FPU_FEATURES(fpu_ss_pkg::FPU_FEATURES),
+    //       .FPU_IMPLEMENTATION(fpu_ss_pkg::FPU_IMPLEMENTATION)
+    //   ) fpu_ss_wrapper_core0_i (
+    //       // Clock and reset
+    //       .clk_i,
+    //       .rst_ni,
+    //       // eXtension Interface
+    //       .xif_compressed_if(ext_if_core0),
+    //       .xif_issue_if(ext_if_core0),
+    //       .xif_commit_if(ext_if_core0),
+    //       .xif_mem_if(ext_if_core0),
+    //       .xif_mem_result_if(ext_if_core0),
+    //       .xif_result_if(ext_if_core0)
+    //   );
+    //   /****************************/
+    // end else begin
+    ${ELSEIF CPUConfiguration.CPU == CV32E40PX && AcceleratorAndCoprocessor.CoprocessorName == your_coprocessor}
+        /*Instantiate here your coprocessor*/
+    ${ELSE}
       // CORE-V-XIF
       // Compressed interface
       assign ext_if_core0.compressed_ready = '0;
@@ -385,7 +410,7 @@ module cpu_system
       // Result Interface
       assign ext_if_core0.result_valid = '0;
       assign ext_if_core0.result = '0;
-    
+    ${ENDIF}
 
     // instantiate the core 1
     cv32e40px_top #(
@@ -478,7 +503,32 @@ module cpu_system
         .X_MISA(fpu_ss_pkg::X_MISA)
     ) ext_if_core1 ();
 
-    
+    ${IF CPUConfiguration.CPU == CV32E40PX && AcceleratorAndCoprocessor.CoprocessorName == coprocessor_example}
+    //   /*** Put here coprocessor ***/
+    //   fpu_ss_wrapper #(
+    //       .PULP_ZFINX(ZFINX),
+    //       .INPUT_BUFFER_DEPTH(1),
+    //       .OUT_OF_ORDER(0),
+    //       .FORWARDING(1),
+    //       .FPU_FEATURES(fpu_ss_pkg::FPU_FEATURES),
+    //       .FPU_IMPLEMENTATION(fpu_ss_pkg::FPU_IMPLEMENTATION)
+    //   ) fpu_ss_wrapper_core1_i (
+    //       // Clock and reset
+    //       .clk_i,
+    //       .rst_ni,
+    //       // eXtension Interface
+    //       .xif_compressed_if(ext_if_core1),
+    //       .xif_issue_if(ext_if_core1),
+    //       .xif_commit_if(ext_if_core1),
+    //       .xif_mem_if(ext_if_core1),
+    //       .xif_mem_result_if(ext_if_core1),
+    //       .xif_result_if(ext_if_core1)
+    //   );
+    //   /****************************/
+    // end else begin
+    ${ELSEIF CPUConfiguration.CPU == CV32E40PX && AcceleratorAndCoprocessor.CoprocessorName == your_coprocessor}
+        /*Instantiate here your coprocessor*/
+    ${ELSE}
       // CORE-V-XIF
       // Compressed interface
       assign ext_if_core1.compressed_ready = '0;
@@ -499,7 +549,7 @@ module cpu_system
       // Result Interface
       assign ext_if_core1.result_valid = '0;
       assign ext_if_core1.result = '0;
-    
+    ${ENDIF}
 
     // instantiate the core 2
     cv32e40px_top #(
@@ -592,7 +642,32 @@ module cpu_system
         .X_MISA(fpu_ss_pkg::X_MISA)
     ) ext_if_core2 ();
 
-    
+    ${IF CPUConfiguration.CPU == CV32E40PX && AcceleratorAndCoprocessor.CoprocessorName == coprocessor_example}
+    //   /*** Put here coprocessor ***/
+    //   fpu_ss_wrapper #(
+    //       .PULP_ZFINX(ZFINX),
+    //       .INPUT_BUFFER_DEPTH(1),
+    //       .OUT_OF_ORDER(0),
+    //       .FORWARDING(1),
+    //       .FPU_FEATURES(fpu_ss_pkg::FPU_FEATURES),
+    //       .FPU_IMPLEMENTATION(fpu_ss_pkg::FPU_IMPLEMENTATION)
+    //   ) fpu_ss_wrapper_core2_i (
+    //       // Clock and reset
+    //       .clk_i,
+    //       .rst_ni,
+    //       // eXtension Interface
+    //       .xif_compressed_if(ext_if_core2),
+    //       .xif_issue_if(ext_if_core2),
+    //       .xif_commit_if(ext_if_core2),
+    //       .xif_mem_if(ext_if_core2),
+    //       .xif_mem_result_if(ext_if_core2),
+    //       .xif_result_if(ext_if_core2)
+    //   );
+    //   /****************************/
+    // end else begin
+    ${ELSEIF CPUConfiguration.CPU == CV32E40PX && AcceleratorAndCoprocessor.CoprocessorName == your_coprocessor}
+        /*Instantiate here your coprocessor*/
+    ${ELSE}
       // CORE-V-XIF
       // Compressed interface
       assign ext_if_core2.compressed_ready = '0;
@@ -613,7 +688,7 @@ module cpu_system
       // Result Interface
       assign ext_if_core2.result_valid = '0;
       assign ext_if_core2.result = '0;
-    
+    ${ENDIF}
 
 
   end else begin : gen_eros_cv32e20
@@ -684,7 +759,39 @@ module cpu_system
     .core_sleep_o  (sleep_o[0])
   );
 
-    
+    ${IF CPUConfiguration.CPU == CV32E20 && AcceleratorAndCoprocessor.CoprocessorName == cvxif_v1_0_0_top}
+      cvxif_v1_0_0_top #(
+        .NrRgprPorts(CVE2Cfg.X_NUM_RS),
+        .XLEN(32),
+        .readregflags_t(readregflags_t),
+        .writeregflags_t(writeregflags_t),
+        .id_t(id_t),
+        .hartid_t(hartid_t),
+        .x_issue_req_t(x_issue_req_t),
+        .x_issue_resp_t(x_issue_resp_t),
+        .x_register_t(x_register_t),
+        .x_commit_t(x_commit_t),
+        .x_result_t(x_result_t),
+        .cvxif_req_t(cvxif_req_t),
+        .cvxif_resp_t(cvxif_resp_t),
+        .obi_req_t(obi_req_t),
+        .obi_resp_t(obi_resp_t)
+      ) cvxif_v1_0_0_top0_i (
+        // Clock and Reset
+        .clk_i,
+        .rst_ni,
+
+        .obi_req_o(copr_req_o[0][0]),
+        .obi_resp_i(copr_resp_i[0][0]),
+
+        //CV-X-IF
+        .cvxif_req_i(cvxif_req[0]),
+        .cvxif_resp_o(cvxif_resp[0])
+      );
+
+    ${ELSEIF CPUConfiguration.CPU == CV32E20 && AcceleratorAndCoprocessor.CoprocessorName == your_coprocessor}
+        /*Instantiate here your coprocessor*/
+    ${ELSE}
     // CORE-V-XIF
     // Issue Interface
     assign cvxif_resp[0].issue_ready = '0;
@@ -693,7 +800,7 @@ module cpu_system
     // Result Interface
     assign cvxif_resp[0].result_valid = '0;
     assign cvxif_resp[0].result = '0;
-    
+    ${ENDIF}
 
     // instantiate the core 1
     cve2_top #(
@@ -760,7 +867,38 @@ module cpu_system
         .core_sleep_o  (sleep_o[1])
     );
 
-    
+    ${IF CPUConfiguration.CPU == CV32E20 && AcceleratorAndCoprocessor.CoprocessorName == cvxif_v1_0_0_top}
+      cvxif_v1_0_0_top #(
+        .NrRgprPorts(CVE2Cfg.X_NUM_RS),
+        .XLEN(32),
+        .readregflags_t(readregflags_t),
+        .writeregflags_t(writeregflags_t),
+        .id_t(id_t),
+        .hartid_t(hartid_t),
+        .x_issue_req_t(x_issue_req_t),
+        .x_issue_resp_t(x_issue_resp_t),
+        .x_register_t(x_register_t),
+        .x_commit_t(x_commit_t),
+        .x_result_t(x_result_t),
+        .cvxif_req_t(cvxif_req_t),
+        .cvxif_resp_t(cvxif_resp_t),
+        .obi_req_t(obi_req_t),
+        .obi_resp_t(obi_resp_t)
+      ) cvxif_v1_0_0_top1_i (
+        // Clock and Reset
+        .clk_i,
+        .rst_ni,
+
+        .obi_req_o(copr_req_o[1][0]),
+        .obi_resp_i(copr_resp_i[1][0]),
+
+        //CV-X-IF
+        .cvxif_req_i(cvxif_req[1]),
+        .cvxif_resp_o(cvxif_resp[1])
+      );
+    ${ELSEIF CPUConfiguration.CPU == CV32E20 && AcceleratorAndCoprocessor.CoprocessorName == your_coprocessor}
+        /*Instantiate here your coprocessor*/
+    ${ELSE}
     // CORE-V-XIF
     // Issue Interface
     assign cvxif_resp[1].issue_ready = '0;
@@ -769,7 +907,7 @@ module cpu_system
     // Result Interface
     assign cvxif_resp[1].result_valid = '0;
     assign cvxif_resp[1].result = '0;
-    
+    ${ENDIF}
 
   // instantiate the core 2
   cve2_top #(
@@ -836,7 +974,38 @@ module cpu_system
     .core_sleep_o  (sleep_o[2])
   );
 
-    
+    ${IF CPUConfiguration.CPU == CV32E20 && AcceleratorAndCoprocessor.CoprocessorName == cvxif_v1_0_0_top}
+      cvxif_v1_0_0_top #(
+        .NrRgprPorts(CVE2Cfg.X_NUM_RS),
+        .XLEN(32),
+        .readregflags_t(readregflags_t),
+        .writeregflags_t(writeregflags_t),
+        .id_t(id_t),
+        .hartid_t(hartid_t),
+        .x_issue_req_t(x_issue_req_t),
+        .x_issue_resp_t(x_issue_resp_t),
+        .x_register_t(x_register_t),
+        .x_commit_t(x_commit_t),
+        .x_result_t(x_result_t),
+        .cvxif_req_t(cvxif_req_t),
+        .cvxif_resp_t(cvxif_resp_t),
+        .obi_req_t(obi_req_t),
+        .obi_resp_t(obi_resp_t)
+      ) cvxif_v1_0_0_top2_i (
+        // Clock and Reset
+        .clk_i,
+        .rst_ni,
+
+        .obi_req_o(copr_req_o[2][0]),
+        .obi_resp_i(copr_resp_i[2][0]),
+
+        //CV-X-IF
+        .cvxif_req_i(cvxif_req[2]),
+        .cvxif_resp_o(cvxif_resp[2])
+      );
+    ${ELSEIF CPUConfiguration.CPU == CV32E20 && AcceleratorAndCoprocessor.CoprocessorName == your_coprocessor}
+        /*Instantiate here your coprocessor*/
+    ${ELSE}
     // CORE-V-XIF
     // Issue Interface
     assign cvxif_resp[2].issue_ready = '0;
@@ -845,7 +1014,7 @@ module cpu_system
     // Result Interface
     assign cvxif_resp[2].result_valid = '0;
     assign cvxif_resp[2].result = '0;
-    
+    ${ENDIF}
 
   end
 endmodule

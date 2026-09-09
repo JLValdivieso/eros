@@ -10,7 +10,9 @@ module eros_top
     parameter type obi_req_t            = logic,
     parameter type obi_resp_t           = logic,
     parameter NHARTS  = 3,
-    parameter N_BANKS = 2
+    parameter N_BANKS = 2,
+    parameter NMASTER_COPROC_RND = eros_pkg::NMASTER_COPROC == 0 ? 1 : eros_pkg::NMASTER_COPROC,
+    parameter NMASTER_ACC_RND = eros_pkg::NMASTER_ACC == 0 ? 1 : eros_pkg::NMASTER_ACC
 ) (
     // Clock and Reset
     input logic clk_i,
@@ -68,13 +70,19 @@ module eros_top
   obi_req_t [N_BANKS-1:0] ram_req;
   obi_resp_t [N_BANKS-1:0] ram_resp;
 
+  localparam NMASTER_COPR_ACC_RND = (eros_pkg::XInterface == 1) ? NMASTER_COPROC_RND : ((eros_pkg::MMAcc == 1) ? NMASTER_ACC_RND : 1);
+
   // Acc signals ports
-  obi_req_t [1:0] acc_req;
-  obi_resp_t [1:0] acc_resp;
+  obi_req_t  [NMASTER_ACC_RND-1:0] acc_req;
+  obi_resp_t [NMASTER_ACC_RND-1:0] acc_resp;
 
   // Copr signals ports
-  obi_req_t [1:0] cpu_copr_req;
-  obi_resp_t [1:0] cpu_copr_resp;
+  obi_req_t  [NMASTER_COPROC_RND-1:0] cpu_copr_req;
+  obi_resp_t [NMASTER_COPROC_RND-1:0] cpu_copr_resp;
+
+  // Copr/Acc signals ports
+  obi_req_t  [NMASTER_COPR_ACC_RND-1:0] copr_acc_req;
+  obi_resp_t [NMASTER_COPR_ACC_RND-1:0] copr_acc_resp;
 
   //CPU_System
   safe_cpu_wrapper #(
@@ -139,7 +147,8 @@ module eros_top
   bus_system #(
       .obi_req_t            (obi_req_t  ),
       .obi_resp_t           (obi_resp_t ),
-      .NHARTS(NHARTS)
+      .NHARTS(NHARTS),
+      .NMASTER_COPR_ACC(NMASTER_COPR_ACC_RND)
   ) bus_system_i (
     .clk_i,
     .rst_ni,
@@ -151,8 +160,8 @@ module eros_top
     .core_data_req_i (core_data_req),
     .core_data_resp_o(core_data_resp),
 
-    .acc_req_i(acc_req),
-    .acc_resp_o(acc_resp),
+    .copr_acc_req_i(copr_acc_req),
+    .copr_acc_resp_o(copr_acc_resp),
 
     .ext_master_req_i,
     .ext_master_resp_o,
@@ -175,39 +184,40 @@ module eros_top
   );
 
 
-  if (eros_pkg::XInterface) begin
+  if (eros_pkg::MMAcc) begin
 
-    assign acc_req = cpu_copr_req;
-    assign cpu_copr_resp = acc_resp;
-
-    assign ext_mm_reg_rsp = '0;
-
-  end else begin
-    ccsds_top_mm #(
+    /*Put MM Acc here*/
+    /*
+    acc_mm #(
       .obi_req_t            (obi_req_t  ),
       .obi_resp_t           (obi_resp_t )
-    )ccsds_top_mm_i (
+    )acc_mm_i (
       // Clock and Reset
       .clk_i,
       .rst_ni,
 
       //Read RAW Data Input
-      .ext_read_req_o(acc_req[0]),
-      .ext_read_resp_i(acc_resp[0]),
-
-      //Write Compressed Data Output
-      .ext_write_req_o(acc_req[1]),
-      .ext_write_resp_i(acc_resp[1]),
+      .obi_req_o(acc_req[0]),
+      .obi_resp_i(acc_resp[0]),
 
       //CSR
       .csr_reg_req_i(ext_mm_reg_req),
       .csr_reg_rsp_o(ext_mm_reg_rsp),
 
-      //IRQ
-      .irq_o()
-
     );
+    */
+    assign cpu_copr_resp = '0;
+    assign copr_acc_req = acc_req;
+    assign acc_resp = copr_acc_resp;
+  end else if (eros_pkg::XInterface) begin
+    assign copr_acc_req = cpu_copr_req;
+    assign cpu_copr_resp = copr_acc_resp;
+    assign ext_mm_reg_rsp = '0;
+  end else begin
+    assign acc_req = '0;
+    assign cpu_copr_resp = '0;
+    assign ext_mm_reg_rsp = '0;
+    assign copr_acc_req = '0;
   end
-
 
 endmodule

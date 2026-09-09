@@ -1,0 +1,23 @@
+CAPI=2:
+
+name: "cvxif_v1_0_0_example::ip"
+description: "Coprocessor Example"
+
+filesets:
+  files_rtl:
+    depend:
+    files:
+    - rtl/include/cvxif_v1_0_0_instr_pkg.sv
+    - rtl/cvxif_v1_0_0_controller.sv
+    - rtl/cvxif_v1_0_0_csr.sv
+    - rtl/cvxif_v1_0_0_instr_decoder.sv
+    - rtl/cvxif_v1_0_0_obi_fsm.sv
+    - rtl/cvxif_v1_0_0_top.sv
+    - rtl/include/utils_macros.svh: {is_include_file: true}
+    - rtl/include/cvxif_types.svh: {is_include_file: true}
+    file_type: systemVerilogSource
+
+targets:
+  default: &default_target
+    filesets:
+    - files_rtl

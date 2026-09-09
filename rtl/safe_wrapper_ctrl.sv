@@ -82,11 +82,11 @@ module safe_wrapper_ctrl #(
   assign hw2reg.external_debug_req.de = 1'b1;
 
   //Status Reg
-  assign hw2reg.cb_heep_status.cores_sleep.d = sleep_i;
-  assign hw2reg.cb_heep_status.cores_sleep.de = 1'b1;
+  assign hw2reg.eros_status.cores_sleep.d = sleep_i;
+  assign hw2reg.eros_status.cores_sleep.de = 1'b1;
 
-  assign hw2reg.cb_heep_status.cores_debug_mode.d = debug_mode_i;
-  assign hw2reg.cb_heep_status.cores_debug_mode.de = 1'b1;
+  assign hw2reg.eros_status.cores_debug_mode.d = debug_mode_i;
+  assign hw2reg.eros_status.cores_debug_mode.de = 1'b1;
 
   //DMR_Recov
   assign hw2reg.dmr_rec.d = DMR_Rec_i;

@@ -49,33 +49,33 @@ vector_table:
 	j __no_irq_handler
 	// 15 : unmapped
 	j __no_irq_handler
-	// 16 : fast interrupt 
+	// 16 : fast interrupt
 	j handler_tmr_recoverysync
-	// 17 : fast interrupt 
+	// 17 : fast interrupt
 	j handler_safe_fsm
-	// 18 : fast interrupt 
-	j handler_tmr_dmcontext_copy
-	// 19 : fast interrupt 
-	j handler_tmr_dmshsync
-	// 20 : fast interrupt 
+	// 18 : fast interrupt
+	j handler_host_safe_activate
+	// 19 : fast interrupt
+	j handler_host_safe_stop
+	// 20 : fast interrupt
 	j __no_irq_handler
-	// 21 : fast interrupt 
+	// 21 : fast interrupt
 	j __no_irq_handler
-	// 22 : fast interrupt 
+	// 22 : fast interrupt
 	j __no_irq_handler
-	// 23 : fast interrupt 
+	// 23 : fast interrupt
 	j __no_irq_handler
-	// 24 : fast interrupt 
+	// 24 : fast interrupt
 	j __no_irq_handler
 	// 25 : fast interrupt
 	j __no_irq_handler
-	// 26 : fast interrupt 
+	// 26 : fast interrupt
 	j __no_irq_handler
-	// 27 : fast interrupt 
+	// 27 : fast interrupt
 	j __no_irq_handler
-	// 28 : fast interrupt 
+	// 28 : fast interrupt
 	j __no_irq_handler
-	// 29 : fast interrupt 
+	// 29 : fast interrupt
 	j __no_irq_handler
 	// 30 : fast interrupt - Safe_FSM_handler
 	j __no_irq_handler

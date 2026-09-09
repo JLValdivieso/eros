@@ -1,0 +1,32 @@
+{
+  CPUConfiguration: {
+    CPU: "CV32E20"              # Options: CV32E20, CV32E40P, CV32E40PX
+    XInterface: "yes"           # Options: yes, no
+    NCycles: 1                  # Clock cycles delay in DCLS staggered mode
+  }
+
+  AcceleratorAndCoprocessor: {
+    CoprocessorName: "cvxif_v1_0_0_top"
+    NMasterCoprocessor: 1
+
+    MMAcc: "no"                 # Options: yes, no
+    AcceleratorName: ""
+    NMasterAccelerator: 0
+  }
+
+  BaseAddressConfiguration: {
+    CSR: {
+      BaseAddress: 0x20070000
+    }
+    # Base address for OBI system bus
+    SystemBus: {
+      BaseAddress: 0xF0000000
+    }
+    # Base address of the accelerator or external bus, in case of MM accelerator use the same base address of the SystemBus + offset check eros package to avoid conflicts
+    MMAcceleratorOrExternalBus: {
+      BaseAddress: 0x00000000
+      # Memory space size
+      Size: 0x41000000
+    }
+  }
+}

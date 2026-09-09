@@ -15,8 +15,8 @@ extern "C" {
 #endif
 
 //Define
-#define GLOBAL_BASE_ADDRESS ${SystemBus.BaseAddress}	/*User defined*/
-#define SAFE_CSR_BASE_ADDRESS ${CSR.BaseAddress} /*User defined*/
+#define GLOBAL_BASE_ADDRESS ${BaseAddressConfiguration.SystemBus.BaseAddress}	/*User defined*/
+#define SAFE_CSR_BASE_ADDRESS ${BaseAddressConfiguration.CSR.BaseAddress} /*User defined*/
 
 
 //Priv Reg

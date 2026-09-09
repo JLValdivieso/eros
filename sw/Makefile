@@ -42,8 +42,8 @@ ARCH     ?= rv32imc
 SOURCE 	 ?= $(".")
 
 # riscv toolchain install path
-RISCV                      ?= ~/.riscv
-RISCV_EXE_PREFIX           = $(RISCV)/bin/${COMPILER_PREFIX}elf-
+RISCV_EROS                      ?= ~/.riscv
+RISCV_EXE_PREFIX           = $(RISCV_EROS)/bin/${COMPILER_PREFIX}elf-
 RISCV_GDB_PATH             = $(RISCV_EXE_PREFIX)gdb
 
 # Get the absolute path

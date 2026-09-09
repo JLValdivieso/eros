@@ -31,14 +31,14 @@ build/Makefile : CMakeLists.txt ${CMAKE_DIR}/riscv.cmake
 			-DSOURCE_PATH=${SOURCE_PATH} \
 			-DTARGET=${TARGET} \
 			-DPROJECT:STRING=${PROJECT} \
-			-DRISCV:STRING=${RISCV} \
+			-DRISCV:STRING=${RISCV_EROS} \
 			-DINC_FOLDERS:STRING=${INC_FOLDERS} \
 			-DLINK_FOLDER:STRING=${LINK_FOLDER} \
 			-DLINKER:STRING=${LINKER} \
 			-DCOMPILER:STRING=${COMPILER} \
 			-DCOMPILER_PREFIX:STRING=${COMPILER_PREFIX} \
 			-DCORE=${CORE} \
-		    ../ 
+		    ../
 
 clean:
 	rm -rf build

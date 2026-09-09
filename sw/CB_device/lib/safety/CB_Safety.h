@@ -33,15 +33,15 @@ __attribute__((aligned(4))) void Safe_Stop(unsigned int master);
 __attribute__((aligned(4),always_inline)) inline void Set_Critical_Section(unsigned int critical){
         volatile unsigned int *Priv_Reg = SAFE_WRAPPER_CTRL_BASEADDRESS | SAFE_WRAPPER_CTRL_CRITICAL_SECTION_REG_OFFSET;
         *Priv_Reg = critical;}
-        
+
 __attribute__((aligned(4))) void Store_Checkpoint(void);
 __attribute__((aligned(4))) void Check_RF(void);
 
 //Handlers
 INTERRUPT_HANDLER_ABI void handler_tmr_recoverysync(void);
-INTERRUPT_HANDLER_ABI void handler_tmr_dmcontext_copy(void);
-INTERRUPT_HANDLER_ABI void handler_tmr_dmshsync(void);
+INTERRUPT_HANDLER_ABI void handler_host_safe_activate(void);
+INTERRUPT_HANDLER_ABI void handler_host_safe_stop(void);
 INTERRUPT_HANDLER_ABI void handler_safe_fsm(void);
 
 
-#endif  
+#endif

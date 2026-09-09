@@ -12,14 +12,14 @@ dependencies:
 
 #  Pulpissimo:          { git: "https://github.com/pulp-platform/pulpissimo.git",            rev: 4c0f9e754b43cf4aaf0690b2e22c45a4904c3027}
 #  riscv:               { git: "https://github.com/esl-epfl/cv32e40px.git",                  rev: 10b08065c50d44b5355c1535cb8f740e68e4f106}
-  
+
 #  riscv:               { git: "https://github.com/openhwgroup/cv32e40p.git",                rev: a43277c0dc64c02be3f5d713438f315ecffde2b9}
-  axi:                  { git: "https://github.com/pulp-platform/axi.git",                   version: 0.39.6                              }  
+  axi:                  { git: "https://github.com/pulp-platform/axi.git",                   version: 0.39.6                              }
   axi_mem_if:           { git: "https://github.com/pulp-platform/axi_mem_if.git",            rev: master                                  }
-  
+
   register_interface:   { git: "https://github.com/pulp-platform/register_interface.git",    rev: master                                  }
   axi2apb:              { git: "https://github.com/pulp-platform/axi2apb.git",               rev: master                                  }
-  
+
   axi_slice:            { git: "https://github.com/pulp-platform/axi_slice.git",             rev: master                                  }
 
   cv32e20:              { path: "./vendor/openhwgroup_cv32e20"                                                                            }
@@ -28,6 +28,7 @@ dependencies:
 sources:
     include_dirs:
       - rtl/include
+      - ip/cvxif_v1_0_0_example/rtl/include
       #
       # eros
       #
@@ -39,6 +40,7 @@ sources:
       - rtl/include/eros_pkg.sv
       - rtl/eros_xbar_varlat_n_to_one.sv
       - rtl/eros_xbar_varlat_one_to_n.sv
+      - rtl/safe_interconnection.sv
       - rtl/cpu_system.sv
       - rtl/bus_system.sv
       - rtl/xbar_system.sv
@@ -48,19 +50,31 @@ sources:
       - rtl/safe_wrapper_ctrl_reg_top.sv
       - rtl/safe_wrapper_ctrl.sv
       - rtl/obi_pipelined_delay.sv
+      - rtl/obi_isolate.sv
       - rtl/obi_sngreg.sv
       - rtl/safe_cpu_wrapper.sv
       - rtl/safe_FSM.sv
       - rtl/tmr_voter.sv
       - rtl/dmr_comparator.sv
+      - rtl/copr_tmr_voter.sv
+      - rtl/copr_dmr_comparator.sv
       - rtl/cpu_private_reg_top.sv
       - rtl/cpu_private_reg.sv
       - rtl/lockstep_reg.sv
+      - rtl/copr_lockstep_reg.sv
+# CV-X-IF IP coproc example
+      - ip/cvxif_v1_0_0_example/rtl/include/cvxif_v1_0_0_instr_pkg.sv
+      - ip/cvxif_v1_0_0_example/rtl/cvxif_v1_0_0_controller.sv
+      - ip/cvxif_v1_0_0_example/rtl/cvxif_v1_0_0_csr.sv
+      - ip/cvxif_v1_0_0_example/rtl/cvxif_v1_0_0_instr_decoder.sv
+      - ip/cvxif_v1_0_0_example/rtl/cvxif_v1_0_0_obi_fsm.sv
+      - ip/cvxif_v1_0_0_example/rtl/cvxif_v1_0_0_top.sv
 #      - ip/fpu_ss/fpu_ss_wrapper.sv
       - rtl/eros_top.sv
       - wrapper/apb_to_obi_wrapper.sv
       - wrapper/eros_top_wrapper.sv
       - wrapper/eros_top_wrapper_axi.sv
+
 
 
       - target: any(simulation,test)

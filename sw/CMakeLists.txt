@@ -108,8 +108,8 @@ LIST(REMOVE_DUPLICATES h_dir_list_)
 # Add list to the directories to be included
 
 # Get all the folders to include when linking
-SET(INCLUDE_FOLDERS "-I ${RISCV}/${COMPILER_PREFIX}elf/include \
-                     -I ${RISCV}/${COMPILER_PREFIX}elf/include/ \
+SET(INCLUDE_FOLDERS "-I ${RISCV_EROS}/${COMPILER_PREFIX}elf/include \
+                     -I ${RISCV_EROS}/${COMPILER_PREFIX}elf/include/ \
                      -I ${ROOT_PROJECT} \
                      -I ${SOURCE_PATH} \
 					           ${dir_list_str}")
@@ -135,9 +135,6 @@ FOREACH(file_path IN LISTS new_list)
   elseif( ${file_path} MATCHES "/CB_device/" )
     if(${file_path} MATCHES "/lib/") # Add it if its in Safety
         if(${file_path} MATCHES "/safety/") # Add it if its in Safety
-          SET(add 1)
-        endif()
-        if(${file_path} MATCHES "/AES/") # Add it if its in AES
           SET(add 1)
         endif()
 #        if(${file_path} MATCHES "/runtime/") # Add it if its in runtime
@@ -335,8 +332,8 @@ set(CMAKE_C_FLAGS ${COMPILER_LINKER_FLAGS})
 if (${COMPILER} MATCHES "clang")
      set( CMAKE_C_FLAGS "${CMAKE_C_FLAGS} --target=riscv32 \
                                           -mabi=ilp32 \
-                                          --gcc-toolchain=${RISCV} \
-                                          --sysroot=${RISCV}/${COMPILER_PREFIX}elf \
+                                          --gcc-toolchain=${RISCV_EROS} \
+                                          --sysroot=${RISCV_EROS}/${COMPILER_PREFIX}elf \
                                           -static \
                                           -mcmodel=medany \
                                           -fvisibility=hidden \
@@ -382,10 +379,10 @@ SET(CMAKE_EXE_LINKER_FLAGS  "-T ${LINKER_SCRIPT}  \
                             ${INCLUDE_FOLDERS} \
                              -static ${LINKED_FILES} \
                              -Wl,-Map=${MAINFILE}.map \
-                             -L ${RISCV}/${COMPILER_PREFIX}elf/lib \
+                             -L ${RISCV_EROS}/${COMPILER_PREFIX}elf/lib \
                              -lc -lm -lgcc -flto \
                             -ffunction-sections -fdata-sections -specs=nano.specs")
-message( "${Magenta}Lib Folder RISCV-GCC: ${RISCV}/${COMPILER_PREFIX}elf/lib${ColourReset}")
+message( "${Magenta}Lib Folder RISCV-GCC: ${RISCV_EROS}/${COMPILER_PREFIX}elf/lib${ColourReset}")
 
 SET(CMAKE_VERBOSE_MAKEFILE on)
 

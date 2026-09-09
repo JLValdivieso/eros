@@ -39,51 +39,39 @@ ARCH     ?= rv32imfc
 FPGA_BOARD 	?= pynq-z2
 
 # EROS CONFIGS PATH
-EROS_ADDR_CONFIG ?= configs/addr.hjson
+EROS_CONFIG ?= config.hjson
 
-##HW
+## HW
 #Generate EROS
 
 eros-gen:
-	python3 ./util/eros_gen.py --addr_config $(EROS_ADDR_CONFIG)
+	python3 ./util/eros_gen.py --addr_config configs/$(EROS_CONFIG)
+	$(MAKE) -C ip/CB_boot_rom all
 
-##SW
-
-#Three option depending on which core it's choose.
-#Set flag to choose the correct core.
-
-#Core X-HEEP SoC
-app-xheep:
-	cd ./hw/vendor/esl_epfl_x_heep; \
-	$(MAKE) app
-
-#Core CB-Heep
-# CORE ?=0
-app-cbcore: app-restore
-	$(MAKE) -C sw PROJECT=$(PROJECT) TARGET=$(TARGET) LINKER=$(LINKER) COMPILER=$(COMPILER) COMPILER_PREFIX=$(COMPILER_PREFIX) ARCH=$(ARCH)
-
-
-verible:
+eros-verible:
 	util/format-verible;
 
+## SW
+eros-app: eros-app-restore
+	$(MAKE) -C sw PROJECT=$(PROJECT) TARGET=$(TARGET) LINKER=$(LINKER) COMPILER=$(COMPILER) COMPILER_PREFIX=$(COMPILER_PREFIX) ARCH=$(ARCH)
+
+# Clean the CMake build folder
+eros-app-restore:
+	rm -rf sw/build
 
 ## Clean the CMake build folder
-app-clean:
+eros-app-clean:
 	if [ -f "sw/build/Makefile" ]; then\
 		$(MAKE) -C sw/build clean;\
 	else\
 		$(MAKE) app-restore;\
 	fi
 
-
-vendor: ./vendor/openhwgroup_cve2.vendor.hjson
+eros-vendor: ./vendor/openhwgroup_cve2.vendor.hjson
 	python3 ./util/vendor.py --update ./vendor/openhwgroup_cve2.vendor.hjson
 
-## Removes the CMake build folder
-app-restore:
-	rm -rf sw/build
 
-clean:
+eros-clean:
 	rm -rf build
 
 help:

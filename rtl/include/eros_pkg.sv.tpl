@@ -21,7 +21,8 @@ package eros_pkg;
   } interrupt_type_e;
 
   localparam interrupt_type_e Intc_Iype = EDGE;
-  localparam XInterface = 1;
+  localparam XInterface = ${CPUConfiguration.XInterface};
+  localparam MMAcc = ${AcceleratorAndCoprocessor.MMAcc};
 
   //CPU TYPE
   typedef enum logic [1:0] {
@@ -30,8 +31,8 @@ package eros_pkg;
     CV32E40PX
   } cpu_type_e;
 
-  localparam cpu_type_e CPU_type = CV32E20;
-  localparam NCYCLES = 1;
+  localparam cpu_type_e CPU_type = ${CPUConfiguration.CPU};
+  localparam int unsigned NCYCLES = ${CPUConfiguration.NCycles};
 
   //System Bus
   typedef enum logic {
@@ -49,19 +50,22 @@ package eros_pkg;
   localparam logic [31:0] CORE2_INSTR_IDX = 4;
   localparam logic [31:0] CORE2_DATA_IDX = 5;
   localparam logic [31:0] EXTERNAL_MASTER_IDX = 6;
-  localparam logic [31:0] ACC_READ_MASTER_IDX = 7;
-  localparam logic [31:0] ACC_WRITE_MASTER_IDX = 8;
+  localparam logic [31:0] ACC_COPR_BASE_IDX = 7;
 
-  localparam SYSTEM_XBAR_NMASTER = 9;
+  localparam int unsigned NMASTER_COPROC = ${AcceleratorAndCoprocessor.NMasterCoprocessor};
+  localparam int unsigned NMASTER_ACC = ${AcceleratorAndCoprocessor.NMasterAccelerator};
+
+  localparam SYSTEM_XBAR_NMASTER  = (!XInterface && !MMAcc) ? 7 :
+    (XInterface) ? ACC_COPR_BASE_IDX + NMASTER_COPROC :
+      (MMAcc) ? ACC_COPR_BASE_IDX + NMASTER_ACC : 7;
   localparam SYSTEM_XBAR_NSLAVE = 5; /*1 ERROR / 2 INTERNAL_PERIPH / 3 EXTERNAL_PERIPH* / 4 RAM0 / 5 RAM1 */
 
-  localparam GLOBAL_BASE_ADDRESS = 32'h${SystemBus.BaseAddress};
-  localparam SAFE_CSR_BASE_ADDRESS = 32'h${CSR.BaseAddress}; /*core_v_mini_mcu_pkg::EXT_PERIPHERAL_START_ADDRESS;*/
+  localparam GLOBAL_BASE_ADDRESS = 32'h${BaseAddressConfiguration.SystemBus.BaseAddress};
+  localparam SAFE_CSR_BASE_ADDRESS = 32'h${BaseAddressConfiguration.CSR.BaseAddress}; /*core_v_mini_mcu_pkg::EXT_PERIPHERAL_START_ADDRESS;*/
 
 
   localparam int unsigned MEM_SIZE = 32'h00010000;
   localparam int unsigned NUM_BANKS = 2;
-
 
   // Internal BUS-REGISTER slave address map
   // ---------------------------------------
@@ -106,8 +110,8 @@ package eros_pkg;
   localparam logic [31:0] PERIPHERAL_END_ADDRESS = PERIPHERAL_START_ADDRESS + PERIPHERAL_SIZE;
   localparam logic [31:0] PERIPHERAL_IDX = 32'd1;
 
-  localparam logic [31:0] EXTERNAL_PERIPHERAL_START_ADDRESS = 32'h${MMAcceleratorOrExternalBus.BaseAddress};/*X-HEEP VERSION32'h00000000;*/
-  localparam logic [31:0] EXTERNAL_PERIPHERAL_SIZE = 32'h${MMAcceleratorOrExternalBus.Size};/*X-HEEP VERSION32'h41000000;*/
+  localparam logic [31:0] EXTERNAL_PERIPHERAL_START_ADDRESS = 32'h${BaseAddressConfiguration.MMAcceleratorOrExternalBus.BaseAddress};/*X-HEEP VERSION32'h00000000;*/
+  localparam logic [31:0] EXTERNAL_PERIPHERAL_SIZE = 32'h${BaseAddressConfiguration.MMAcceleratorOrExternalBus.Size};/*X-HEEP VERSION32'h41000000;*/
   localparam logic [31:0] EXTERNAL_PERIPHERAL_END_ADDRESS = EXTERNAL_PERIPHERAL_START_ADDRESS + EXTERNAL_PERIPHERAL_SIZE;
   localparam logic [31:0] EXTERNAL_PERIPHERAL_IDX = 32'd2;
 
@@ -191,7 +195,7 @@ package eros_pkg;
 
 
   //Private Memory CPU
-  localparam logic [31:0] CPU_REG_START_ADDRESS = GLOBAL_BASE_ADDRESS; //Todo modificar la reg privada
+  localparam logic [31:0] CPU_REG_START_ADDRESS = GLOBAL_BASE_ADDRESS; //TODO private reg
   localparam logic [31:0] CPU_REG_SIZE = 32'h00010000;
   localparam logic [31:0] CPU_REG_END_ADDRESS = CPU_REG_START_ADDRESS + CPU_REG_SIZE;
 

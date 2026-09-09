@@ -15,24 +15,24 @@
 # Author: Jose Miranda (jose.mirandacalero@epfl.ch)
 
 # set(RISCV  /home/$ENV{USER}/tools/riscv)
-set(RISCV_GITHUB_GCC_COMPILER  $ENV{RISCV}/bin/$ENV{COMPILER_PREFIX}elf-gcc)
-set(RISCV_GITHUB_CLANG_COMPILER  $ENV{RISCV}/bin/clang)
-#message("RISC-V GCC cross-compiler is in : ${RISCV_GCC_COMPILER}") 
+set(RISCV_GITHUB_GCC_COMPILER  $ENV{RISCV_EROS}/bin/$ENV{COMPILER_PREFIX}elf-gcc)
+set(RISCV_GITHUB_CLANG_COMPILER  $ENV{RISCV_EROS}/bin/clang)
+#message("RISC-V GCC cross-compiler is in : ${RISCV_GCC_COMPILER}")
 
 if (EXISTS ${RISCV_GITHUB_GCC_COMPILER})
      set( RISCV_GCC_COMPILER ${RISCV_GITHUB_GCC_COMPILER})
 else()
-     message(FATAL_ERROR "RISC-V GCC not found. ${RISCV_GITHUB_GCC_COMPILER}") 
+     message(FATAL_ERROR "RISC-V GCC not found. ${RISCV_GITHUB_GCC_COMPILER}")
 endif()
 
 if ($ENV{COMPILER} MATCHES "clang")
      if (EXISTS ${RISCV_GITHUB_CLANG_COMPILER})
           set( RISCV_CLANG_COMPILER ${RISCV_GITHUB_CLANG_COMPILER})
      else()
-          message(FATAL_ERROR "RISC-V clang not found. ${RISCV_GITHUB_CLANG_COMPILER}") 
+          message(FATAL_ERROR "RISC-V clang not found. ${RISCV_GITHUB_CLANG_COMPILER}")
      endif()
 elseif (NOT $ENV{COMPILER} MATCHES "gcc")
-     message(FATAL_ERROR "Compiler not supported. $ENV{COMPILER}") 
+     message(FATAL_ERROR "Compiler not supported. $ENV{COMPILER}")
 endif()
 
 #message( "RISC-V GCC found: ${RISCV_GCC_COMPILER}")
@@ -52,7 +52,7 @@ endif()
 # The Generic system name is used for embedded targets (targets without OS) in
 # CMake
 set( CMAKE_SYSTEM_NAME          Generic )
-set( CMAKE_SYSTEM_PROCESSOR     $ENV{ARCH} 
+set( CMAKE_SYSTEM_PROCESSOR     $ENV{ARCH}
      CACHE STRING "Generate code for given RISC-V ISA string")
 set( CMAKE_EXECUTABLE_SUFFIX    ".elf")
 
@@ -93,7 +93,7 @@ endif()
 #message( "OBJDUMP PATH: ${CMAKE_OBJDUMP}" )
 
 # Dealing with GDB into CMake - TBD
-#set( CMAKE_C_GDB        ${CROSS_COMPILE}gdb 
+#set( CMAKE_C_GDB        ${CROSS_COMPILE}gdb
 #     CACHE FILEPATH "The gdb toolchain command " FORCE )
 
 # Set the common build flags

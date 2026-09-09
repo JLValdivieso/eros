@@ -36,6 +36,52 @@ _start:
 /* initialize stack pointer */
    la sp, _sp
 
+/* set vector table address and vectored mode */
+    la a0, __vector_start
+    ori a0, a0, 0x1
+    csrw mtvec, a0
+
+/* set active interruption */
+    csrr a0, mstatus;
+    ori a0,a0,0x08;
+    csrw mstatus, a0;
+   /*Set mie.MEIE bit mask to one to enable machine-level external interrupts*/
+    li   a0,0xFFFF0000
+    csrw mie, a0
+
+/* initialize all the GPRs register to the same value*/
+/* In case of a direct initialization of the processors in a fault-tolerant state */
+    mv  ra, zero
+    mv  tp, zero
+    mv  t0, zero
+    mv  t1, zero
+    mv  t2, zero
+    mv  s0, zero
+    mv  s1, zero
+    mv  a0, zero
+    mv  a1, zero
+    mv  a2, zero
+    mv  a3, zero
+    mv  a4, zero
+    mv  a5, zero
+    mv  a6, zero
+    mv  a7, zero
+    mv  s2, zero
+    mv  s3, zero
+    mv  s4, zero
+    mv  s5, zero
+    mv  s6, zero
+    mv  s7, zero
+    mv  s8, zero
+    mv  s9, zero
+    mv  s10, zero
+    mv  s11, zero
+    mv  t3, zero
+    mv  t4, zero
+    mv  t5, zero
+    mv  t6, zero
+
+
 
 /* clear the bss segment */
 _init_bss:
@@ -59,19 +105,6 @@ _init_bss:
     blt a1, a2, loop_init_data
     end_init_data:
 #endif
-
-/* set vector table address and vectored mode */
-    la a0, __vector_start
-    ori a0, a0, 0x1
-    csrw mtvec, a0
-
-/* set active interruption */
-    csrr a0, mstatus;
-    ori a0,a0,0x08; 
-    csrw mstatus, a0;  
-   /*Set mie.MEIE bit mask to one to enable machine-level external interrupts*/
-    li   a0,0xFFFF0000 
-    csrw mie, a0      
 
 /* new-style constructors and destructors */
 /*
