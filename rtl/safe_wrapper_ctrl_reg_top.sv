@@ -108,6 +108,18 @@ module safe_wrapper_ctrl_reg_top #(
   logic [31:0] initial_stack_addr_qs;
   logic [31:0] initial_stack_addr_wd;
   logic initial_stack_addr_we;
+  logic [31:0] preemptive_context_address_qs;
+  logic [31:0] preemptive_context_address_wd;
+  logic preemptive_context_address_we;
+  logic preemptive_control_status_preemptive_trigger_qs;
+  logic preemptive_control_status_preemptive_trigger_wd;
+  logic preemptive_control_status_preemptive_trigger_we;
+  logic preemptive_control_status_preemptive_ready_qs;
+  logic preemptive_control_status_preemptive_ready_wd;
+  logic preemptive_control_status_preemptive_ready_we;
+  logic preemptive_control_status_preemptive_continue_qs;
+  logic preemptive_control_status_preemptive_continue_wd;
+  logic preemptive_control_status_preemptive_continue_we;
 
   // Register instances
   // R[safe_configuration]: V(False)
@@ -538,9 +550,116 @@ module safe_wrapper_ctrl_reg_top #(
   );
 
 
+  // R[preemptive_context_address]: V(False)
+
+  prim_subreg #(
+    .DW      (32),
+    .SWACCESS("RW"),
+    .RESVAL  (32'h0)
+  ) u_preemptive_context_address (
+    .clk_i   (clk_i    ),
+    .rst_ni  (rst_ni  ),
+
+    // from register interface
+    .we     (preemptive_context_address_we),
+    .wd     (preemptive_context_address_wd),
+
+    // from internal hardware
+    .de     (1'b0),
+    .d      ('0  ),
+
+    // to internal hardware
+    .qe     (),
+    .q      (),
+
+    // to register interface (read)
+    .qs     (preemptive_context_address_qs)
+  );
 
 
-  logic [13:0] addr_hit;
+  // R[preemptive_control_status]: V(False)
+
+  //   F[preemptive_trigger]: 0:0
+  prim_subreg #(
+    .DW      (1),
+    .SWACCESS("RW"),
+    .RESVAL  (1'h0)
+  ) u_preemptive_control_status_preemptive_trigger (
+    .clk_i   (clk_i    ),
+    .rst_ni  (rst_ni  ),
+
+    // from register interface
+    .we     (preemptive_control_status_preemptive_trigger_we),
+    .wd     (preemptive_control_status_preemptive_trigger_wd),
+
+    // from internal hardware
+    .de     (hw2reg.preemptive_control_status.preemptive_trigger.de),
+    .d      (hw2reg.preemptive_control_status.preemptive_trigger.d ),
+
+    // to internal hardware
+    .qe     (),
+    .q      (reg2hw.preemptive_control_status.preemptive_trigger.q ),
+
+    // to register interface (read)
+    .qs     (preemptive_control_status_preemptive_trigger_qs)
+  );
+
+
+  //   F[preemptive_ready]: 1:1
+  prim_subreg #(
+    .DW      (1),
+    .SWACCESS("RW"),
+    .RESVAL  (1'h0)
+  ) u_preemptive_control_status_preemptive_ready (
+    .clk_i   (clk_i    ),
+    .rst_ni  (rst_ni  ),
+
+    // from register interface
+    .we     (preemptive_control_status_preemptive_ready_we),
+    .wd     (preemptive_control_status_preemptive_ready_wd),
+
+    // from internal hardware
+    .de     (hw2reg.preemptive_control_status.preemptive_ready.de),
+    .d      (hw2reg.preemptive_control_status.preemptive_ready.d ),
+
+    // to internal hardware
+    .qe     (),
+    .q      (reg2hw.preemptive_control_status.preemptive_ready.q ),
+
+    // to register interface (read)
+    .qs     (preemptive_control_status_preemptive_ready_qs)
+  );
+
+
+  //   F[preemptive_continue]: 2:2
+  prim_subreg #(
+    .DW      (1),
+    .SWACCESS("RW"),
+    .RESVAL  (1'h0)
+  ) u_preemptive_control_status_preemptive_continue (
+    .clk_i   (clk_i    ),
+    .rst_ni  (rst_ni  ),
+
+    // from register interface
+    .we     (preemptive_control_status_preemptive_continue_we),
+    .wd     (preemptive_control_status_preemptive_continue_wd),
+
+    // from internal hardware
+    .de     (hw2reg.preemptive_control_status.preemptive_continue.de),
+    .d      (hw2reg.preemptive_control_status.preemptive_continue.d ),
+
+    // to internal hardware
+    .qe     (),
+    .q      (reg2hw.preemptive_control_status.preemptive_continue.q ),
+
+    // to register interface (read)
+    .qs     (preemptive_control_status_preemptive_continue_qs)
+  );
+
+
+
+
+  logic [15:0] addr_hit;
   always_comb begin
     addr_hit = '0;
     addr_hit[ 0] = (reg_addr == SAFE_WRAPPER_CTRL_SAFE_CONFIGURATION_OFFSET);
@@ -557,6 +676,8 @@ module safe_wrapper_ctrl_reg_top #(
     addr_hit[11] = (reg_addr == SAFE_WRAPPER_CTRL_EROS_STATUS_OFFSET);
     addr_hit[12] = (reg_addr == SAFE_WRAPPER_CTRL_DMR_REC_OFFSET);
     addr_hit[13] = (reg_addr == SAFE_WRAPPER_CTRL_INITIAL_STACK_ADDR_OFFSET);
+    addr_hit[14] = (reg_addr == SAFE_WRAPPER_CTRL_PREEMPTIVE_CONTEXT_ADDRESS_OFFSET);
+    addr_hit[15] = (reg_addr == SAFE_WRAPPER_CTRL_PREEMPTIVE_CONTROL_STATUS_OFFSET);
   end
 
   assign addrmiss = (reg_re || reg_we) ? ~|addr_hit : 1'b0 ;
@@ -577,7 +698,9 @@ module safe_wrapper_ctrl_reg_top #(
                (addr_hit[10] & (|(SAFE_WRAPPER_CTRL_PERMIT[10] & ~reg_be))) |
                (addr_hit[11] & (|(SAFE_WRAPPER_CTRL_PERMIT[11] & ~reg_be))) |
                (addr_hit[12] & (|(SAFE_WRAPPER_CTRL_PERMIT[12] & ~reg_be))) |
-               (addr_hit[13] & (|(SAFE_WRAPPER_CTRL_PERMIT[13] & ~reg_be)))));
+               (addr_hit[13] & (|(SAFE_WRAPPER_CTRL_PERMIT[13] & ~reg_be))) |
+               (addr_hit[14] & (|(SAFE_WRAPPER_CTRL_PERMIT[14] & ~reg_be))) |
+               (addr_hit[15] & (|(SAFE_WRAPPER_CTRL_PERMIT[15] & ~reg_be)))));
   end
 
   assign safe_configuration_we = addr_hit[0] & reg_we & !reg_error;
@@ -615,6 +738,18 @@ module safe_wrapper_ctrl_reg_top #(
 
   assign initial_stack_addr_we = addr_hit[13] & reg_we & !reg_error;
   assign initial_stack_addr_wd = reg_wdata[31:0];
+
+  assign preemptive_context_address_we = addr_hit[14] & reg_we & !reg_error;
+  assign preemptive_context_address_wd = reg_wdata[31:0];
+
+  assign preemptive_control_status_preemptive_trigger_we = addr_hit[15] & reg_we & !reg_error;
+  assign preemptive_control_status_preemptive_trigger_wd = reg_wdata[0];
+
+  assign preemptive_control_status_preemptive_ready_we = addr_hit[15] & reg_we & !reg_error;
+  assign preemptive_control_status_preemptive_ready_wd = reg_wdata[1];
+
+  assign preemptive_control_status_preemptive_continue_we = addr_hit[15] & reg_we & !reg_error;
+  assign preemptive_control_status_preemptive_continue_wd = reg_wdata[2];
 
   // Read data return
   always_comb begin
@@ -676,6 +811,16 @@ module safe_wrapper_ctrl_reg_top #(
 
       addr_hit[13]: begin
         reg_rdata_next[31:0] = initial_stack_addr_qs;
+      end
+
+      addr_hit[14]: begin
+        reg_rdata_next[31:0] = preemptive_context_address_qs;
+      end
+
+      addr_hit[15]: begin
+        reg_rdata_next[0] = preemptive_control_status_preemptive_trigger_qs;
+        reg_rdata_next[1] = preemptive_control_status_preemptive_ready_qs;
+        reg_rdata_next[2] = preemptive_control_status_preemptive_continue_qs;
       end
 
       default: begin

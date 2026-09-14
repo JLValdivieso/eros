@@ -42,6 +42,7 @@ INTERRUPT_HANDLER_ABI void handler_tmr_recoverysync(void);
 INTERRUPT_HANDLER_ABI void handler_host_safe_activate(void);
 INTERRUPT_HANDLER_ABI void handler_host_safe_stop(void);
 INTERRUPT_HANDLER_ABI void handler_safe_fsm(void);
+INTERRUPT_HANDLER_ABI void handler_preemptive_store_context(void);
 
 
 #endif

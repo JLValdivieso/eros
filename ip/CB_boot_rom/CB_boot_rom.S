@@ -194,10 +194,21 @@ whereto:
         //                Debug Module state machine tracks what is 'desired'.
 */
 halt_boot:
-       //Control & Status Register//
        lui   t5, %hi(SAFE_WRAPPER_CTRL_BASEADDRESS)
-       lw   t5, SAFE_WRAPPER_CTRL_SAFE_COPY_ADDRESS_REG_OFFSET(t5)
+       lw   t6, SAFE_WRAPPER_CTRL_PREEMPTIVE_CONTROL_STATUS_REG_OFFSET(t5)
+       srli t6, t6, 2 // 2 >> to check if its one or zero (SAFE_WRAPPER_CTRL_PREEMPTIVE_CONTROL_STATUS_PREEMPTIVE_CONTINUE_BIT)
+       bnez t6, halt_load_preemptive_context
 
+halt_load_sync_context:
+       //Control & Status Register//
+       lw   t5, SAFE_WRAPPER_CTRL_SAFE_COPY_ADDRESS_REG_OFFSET(t5)
+       j halt_load_context
+halt_load_preemptive_context:
+       //Control & Status Register//
+       sw   zero, SAFE_WRAPPER_CTRL_PREEMPTIVE_CONTROL_STATUS_REG_OFFSET(t5)  // Reset (SAFE_WRAPPER_CTRL_PREEMPTIVE_CONTROL_STATUS_PREEMPTIVE_CONTINUE_BIT)
+       lw   t5, SAFE_WRAPPER_CTRL_PREEMPTIVE_CONTEXT_ADDRESS_REG_OFFSET(t5)
+
+halt_load_context:
        // csr mstatus
        lw   t6, 0(t5)
        csrw mstatus, t6

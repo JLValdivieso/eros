@@ -26,7 +26,10 @@ module safe_wrapper_ctrl #(
     output logic Initial_Sync_Master_o,
     output logic Start_o,
     output logic End_sw_routine_o,
+    output logic Preemptive_Trigger_o,
+    output logic Preemptive_Continue_o,
 
+    input logic Preemptive_Ready_i,
     input logic Start_Boot_i,
     input logic en_ext_debug_i,
     input logic DMR_Rec_i,
@@ -159,4 +162,12 @@ module safe_wrapper_ctrl #(
       end
     end
   end
+
+  // Preemtive Control
+  assign Preemptive_Trigger_o = reg2hw.preemptive_control_status.preemptive_trigger.q;
+
+  assign hw2reg.preemptive_control_status.preemptive_ready.d = Preemptive_Ready_i;
+  assign hw2reg.preemptive_control_status.preemptive_ready.de = 1'b1;
+
+  assign Preemptive_Continue_o = reg2hw.preemptive_control_status.preemptive_continue.q;
 endmodule : safe_wrapper_ctrl

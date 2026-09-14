@@ -138,7 +138,32 @@
           desc: "Initial_Stack_Addr"
         }
       ]
+    },
+    { name:     "Preemptive_Context_Address",
+      desc:     "Switch_Context_Address",
+      swaccess: "rw",
+      hwaccess: "none",
+      fields: [
+        { bits: "31:0", name: "Switch_Context_Address", resval: "0",
+          desc: "Switch_Context_Address"
+        }
+      ]
+    },
+    { name:     "Preemptive_Control_STATUS",
+      desc:     "Switch_Context_Address",
+      swaccess: "rw",
+      hwaccess: "hrw",
+      fields: [
+        { bits: "0", name: "Preemptive_Trigger", resval: "0",
+          desc: "Start preemptive process"
+        }
+        { bits: "1", name: "Preemptive_Ready", resval: "0",
+          desc: "Status of preemptive process"
+        }
+        { bits: "2", name: "Preemptive_Continue", resval: "0",
+          desc: "Start task or continue task"
+        }
+      ]
     }
-
   ]
 }

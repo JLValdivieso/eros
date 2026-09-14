@@ -81,6 +81,11 @@ module safe_cpu_wrapper
   logic Start_Boot_s;
   logic DMR_Rec_s;
 
+  logic preemptive_trigger_s;
+  logic preemptive_continue_s;
+  logic preemptive_ready_s;
+  logic [NHARTS-1:0] intc_preemptive_s;
+
   // CPU ports
   obi_req_t [NHARTS-1 : 0] core_instr_req;
   obi_resp_t [NHARTS-1 : 0] core_instr_resp;
@@ -234,6 +239,9 @@ module safe_cpu_wrapper
       .Start_o(Start_s),
       .End_sw_routine_o(End_sw_routine_s),
       .interrupt_o(interrupt_o),
+      .Preemptive_Trigger_o(preemptive_trigger_s),
+      .Preemptive_Continue_o(preemptive_continue_s),
+      .Preemptive_Ready_i(preemptive_ready_s),
       .debug_mode_i(debug_mode_s),
       .sleep_i(sleep_s),
       .Start_Boot_i(Start_Boot_s),
@@ -257,6 +265,7 @@ module safe_cpu_wrapper
       .Hart_wfi_i(sleep_s),
       .Hart_intc_ack_i(Hart_intc_ack_s),
       .Master_Core_i(master_core_s),
+      .Interrupt_Preemptive_o(intc_preemptive_s),
       .Interrupt_Sync_o(intc_sync_s),
       .Interrupt_swResync_o(Interrupt_swResync_s),
       .Interrupt_Host_Sync_o(host_sync_s),
@@ -275,11 +284,14 @@ module safe_cpu_wrapper
       .Start_i(Start_s),
       .End_sw_routine_i(End_sw_routine_s),
       .DMR_Rec_o(DMR_Rec_s),
-      .en_ext_debug_req_o(en_ext_debug_s)
+      .en_ext_debug_req_o(en_ext_debug_s),
+      .Preemptive_Trigger_i(preemptive_trigger_s),
+      .Preemptive_Continue_i(preemptive_continue_s),
+      .Preemptive_Ready_o(preemptive_ready_s)
   );
-  assign intr[0] = {12'b0, host_desync_s[0], host_sync_s[0], intc_sync_s[0], Interrupt_swResync_s[0], 16'b0};
-  assign intr[1] = {12'b0, host_desync_s[1], host_sync_s[1], intc_sync_s[1], Interrupt_swResync_s[1], 16'b0};
-  assign intr[2] = {12'b0, host_desync_s[2], host_sync_s[2], intc_sync_s[2], Interrupt_swResync_s[2], 16'b0};
+  assign intr[0] = {11'b0, intc_preemptive_s[0], host_desync_s[0], host_sync_s[0], intc_sync_s[0], Interrupt_swResync_s[0], 16'b0};
+  assign intr[1] = {11'b0, intc_preemptive_s[1], host_desync_s[1], host_sync_s[1], intc_sync_s[1], Interrupt_swResync_s[1], 16'b0};
+  assign intr[2] = {11'b0, intc_preemptive_s[2], host_desync_s[2], host_sync_s[2], intc_sync_s[2], Interrupt_swResync_s[2], 16'b0};
 
   //Todo: future posibility to debug during TMR_SYNC or DMR_SYNC
   assign debug_req[0] = (debug_req_i && en_ext_debug_s && master_core_s[0]) || intc_halt_s[0];

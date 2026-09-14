@@ -58,7 +58,7 @@ vector_table:
 	// 19 : fast interrupt
 	j handler_host_safe_stop
 	// 20 : fast interrupt
-	j __no_irq_handler
+	j handler_preemptive_store_context
 	// 21 : fast interrupt
 	j __no_irq_handler
 	// 22 : fast interrupt

@@ -692,6 +692,155 @@ void handler_host_safe_stop(void){
         asm volatile("addi sp,sp,20");
 }
 
+void handler_preemptive_store_context(void){
+        asm volatile ("addi sp,sp,-16");     //Store in stack t5, t6
+        asm volatile ("sw   t5,12(sp)");
+        asm volatile ("sw   t6,8(sp)");
+
+        // Interruption ACK
+        asm volatile("li t6, 1");
+        asm volatile("li   t5, %0" : : "i" (PRIVATE_REG_BASEADDRESS));
+        asm volatile("sw t6, %0(t5)" : : "i" (CPU_PRIVATE_HART_INTC_ACK_REG_OFFSET));
+        asm volatile("sw zero ,%0(t5)" : : "i" (CPU_PRIVATE_HART_INTC_ACK_REG_OFFSET));
+
+        // Set Base Address
+        asm volatile("li   t5, %0" : : "i" (SAFE_WRAPPER_CTRL_BASEADDRESS));
+        asm volatile("lw t5, %0(t5)" : : "i" (SAFE_WRAPPER_CTRL_PREEMPTIVE_CONTEXT_ADDRESS_REG_OFFSET));
+
+
+    //Control & Status Register
+
+    //Machine Status
+    //mstatus   0x300
+        asm volatile("csrr t6, mstatus");
+    //Modify mstatus to restore its value before interruption reenable mie
+        asm volatile("ori t6, t6,4");
+        asm volatile("sw    t6,0(t5)");
+
+    //Machine Interrupt Enable
+    //mie       0x304
+        asm volatile("csrr t6, mie");
+        asm volatile("sw    t6,4(t5)");
+
+    //Machine Trap-Vector
+    //mtvec     0x305
+        asm volatile("csrr t6, mtvec");
+        asm volatile("sw    t6,8(t5)");
+
+    //Machine Exception Program Counter
+    //mepc      0x341
+        asm volatile("csrr  t6, mepc");
+        asm volatile("sw    t6,12(t5)");
+        asm volatile("sw    t6, 144(t5)");
+
+    //Machine Trap Value Register
+    //mtval     0x343
+        asm volatile("csrr t6, mtval");
+        asm volatile("sw    t6,16(t5)");
+
+
+    //Register File
+        //x1    ra
+        asm volatile("sw ra, 20(t5)");
+
+        //x2    sp
+        asm volatile ("addi t6,sp,16");     //Restore current stack -> t6
+        asm volatile("sw t6, 24(t5)");
+
+        //x3    gp
+        asm volatile("sw gp, 28(t5)");
+
+        //x4    tp
+        asm volatile("sw tp, 32(t5)");
+
+        //x5    t0
+        asm volatile("sw t0, 36(t5)");
+
+        //x6    t1
+        asm volatile("sw t1, 40(t5)");
+
+        //x7    t2
+        asm volatile("sw t2, 44(t5)");
+
+        //x8   s0/fp
+        asm volatile("sw s0, 48(t5)");
+
+        //x9    s1
+        asm volatile("sw s1, 52(t5)");
+
+        //x10   a0
+        asm volatile("sw a0, 56(t5)");
+
+        //x11   a1
+        asm volatile("sw a1, 60(t5)");
+
+        //x12   a2
+        asm volatile("sw a2, 64(t5)");
+
+        //x13   a3
+        asm volatile("sw a3, 68(t5)");
+
+
+        //x14   a4
+        asm volatile("sw a4, 72(t5)");
+
+        //x15   a5
+        asm volatile("sw a5, 76(t5)");
+
+        //x16   a6
+        asm volatile("sw a6, 80(t5)");
+
+        //x17   a7
+        asm volatile("sw a7, 84(t5)");
+
+        //x18   s2
+        asm volatile("sw s2, 88(t5)");
+
+        //x19   s3
+        asm volatile("sw s3, 92(t5)");
+
+        //x20   s4
+        asm volatile("sw s4, 96(t5)");
+
+        //x21   s5
+        asm volatile("sw s5, 100(t5)");
+
+        //x22   s6
+        asm volatile("sw s6, 104(t5)");
+
+        //x23   s7
+        asm volatile("sw s7, 108(t5)");
+
+        //x24   s8
+        asm volatile("sw s8, 112(t5)");
+
+        //x25   s9
+        asm volatile("sw s9, 116(t5)");
+
+        //x26   s10
+        asm volatile("sw s10, 120(t5)");
+
+        //x27   s11
+        asm volatile("sw s11, 124(t5)");
+
+        //x28   t3
+        asm volatile("sw t3, 128(t5)");
+
+        //x29   t4
+        asm volatile("sw t4, 132(t5)");
+
+        //x30   t5
+        asm volatile("lw   t6,12(sp)"); //Load from stack true value of t5
+        asm volatile("sw t6, 136(t5)");
+
+        //x31   t6
+        asm volatile("lw   t6,8(sp)"); //Load from stack true value of t6
+        asm volatile("sw t6, 140(t5)");
+
+        asm volatile("li   t5, %0" : : "i" (BOOT_OFFSET)); // mret to wait for interrupt to the wfi section in the debug/boot ROM
+        asm volatile("csrw mepc, t5");
+}
+
 void Store_Checkpoint(void){
         asm volatile ("addi sp,sp,-28");     //Store in stack t2, t3, t4, t5, t6
         asm volatile ("sw   t2,24(sp)");

@@ -23,6 +23,10 @@ module safe_FSM #(
     input logic [NHARTS-1:0] Hart_wfi_i,
     input logic [NHARTS-1:0] Hart_intc_ack_i,
     input logic [NHARTS-1:0] Master_Core_i,
+    input logic Preemptive_Trigger_i,
+    output logic Preemptive_Ready_o,
+    input logic Preemptive_Continue_i,
+    output logic [NHARTS-1:0] Interrupt_Preemptive_o,
     output logic [NHARTS-1:0] Interrupt_Sync_o,
     output logic [NHARTS-1:0] Interrupt_swResync_o,
     output logic [NHARTS-1:0] Interrupt_Host_Sync_o,
@@ -57,17 +61,23 @@ module safe_FSM #(
     SINGLE_RESET,
     SINGLE_IDLE,
     SINGLE_START,
+    SINGLE_BOOT,
+    SINGLE_CONTEXT_BOOT,
     SINGLE_RUN,
     SINGLE_TO_TMR,
     SINGLE_TO_DMR,
-    SINGLE_SYNC_OFF
+    SINGLE_SYNC_OFF,
+    SINGLE_SWITCH_INTC,
+    SINGLE_SAVE_CONTEXT,
+    SINGLE_SWITCH_WFI
   } ctrl_single_fsm_e;
 
-  typedef enum logic [3:0] {
+  typedef enum logic [4:0] {
     TMR_RESET,
     TMR_IDLE,
     TMR_START,
     TMR_BOOT,
+    TMR_CONTEXT_BOOT,
     TMR_SH_HALT,
     TMR_WAIT_SH,
     TMR_MS_INTRSYNC,
@@ -76,14 +86,18 @@ module safe_FSM #(
     TMR_END,
     TMR_TO_SINGLE,
     TMR_SYNCINTC,
-    TMR_SWSYNC
+    TMR_SWSYNC,
+    TMR_SWITCH_INTC,
+    TMR_SAVE_CONTEXT,
+    TMR_SWITCH_WFI
   } ctrl_tmr_fsm_e;
 
-  typedef enum logic [3:0] {
+  typedef enum logic [4:0] {
     DMR_RESET,
     DMR_IDLE,
     DMR_START,
     DMR_BOOT,
+    DMR_CONTEXT_BOOT,
     DMR_SH_HALT,
     DMR_WAIT_SH,
     DMR_MS_INTRSYNC,
@@ -93,7 +107,10 @@ module safe_FSM #(
     DMR_TO_SINGLE,
     DMR_STOP,
     DMR_INTC_RECOVERY,
-    DMR_RECOVERY
+    DMR_RECOVERY,
+    DMR_SWITCH_INTC,
+    DMR_SAVE_CONTEXT,
+    DMR_SWITCH_WFI
   } ctrl_dmr_fsm_e;
 
   ctrl_safe_fsm_e ctrl_safe_fsm_cs, ctrl_safe_fsm_ns;
@@ -113,8 +130,12 @@ module safe_FSM #(
 
   logic halt_req_s;
   logic Single_Boot_s;
+  logic Single_Preemptive_Ready_s;
+  logic [NHARTS-1:0] Single_Preemptive_intc_s;
   logic General_boot_s;
   logic [NHARTS-1:0] TMR_Boot_s;
+  logic [NHARTS-1:0] TMR_Preemptive_Ready_s;
+  logic [NHARTS-1:0] TMR_Preemptive_intc_s;
   logic en_safe_ext_debug_req_s, en_single_ext_debug_req_s;
   logic [NHARTS-1:0] dbg_halt_req_s;
   logic [NHARTS-1:0] dbg_halt_req_general_s;
@@ -127,6 +148,8 @@ module safe_FSM #(
 
   //DMR SIGNALS
   logic [NHARTS-1:0] DMR_Boot_s;
+  logic [NHARTS-1:0] DMR_Preemptive_Ready_s;
+  logic [NHARTS-1:0] DMR_Preemptive_intc_s;
   logic [NHARTS-1:0] DMR_Single_s;
   logic [NHARTS-1:0] DMR_dbg_halt_req_s;
   logic [NHARTS-1:0] DMR_dbg_halt_req_general_s;
@@ -179,30 +202,32 @@ module safe_FSM #(
         else ctrl_safe_fsm_ns = BOOT;
       end
       IDLE: begin
-        if (Safe_configuration_i == 2'b01 && Start_i == 1'b1) ctrl_safe_fsm_ns = TMR_MODE;
-        else if ((Safe_configuration_i == 2'b10 | Safe_configuration_i == 2'b11) && Start_i == 1'b1)
+        if (Safe_configuration_i == 2'b01 && Start_i == 1'b1 && Preemptive_Ready_o == 1'b0 && Preemptive_Trigger_i == 1'b0) ctrl_safe_fsm_ns = TMR_MODE;
+        else if ((Safe_configuration_i == 2'b10 | Safe_configuration_i == 2'b11) && Start_i == 1'b1 && Preemptive_Ready_o == 1'b0 && Preemptive_Trigger_i == 1'b0)
           ctrl_safe_fsm_ns = DMR_MODE;
-        else if (Safe_configuration_i == 2'b00 && Start_i == 1'b1) ctrl_safe_fsm_ns = SINGLE_MODE;
+        else if (Safe_configuration_i == 2'b00 && Start_i == 1'b1 && Preemptive_Ready_o == 1'b0 && Preemptive_Trigger_i == 1'b0) ctrl_safe_fsm_ns = SINGLE_MODE;
         else ctrl_safe_fsm_ns = IDLE;
       end
       SINGLE_MODE: begin
-        if (Start_i == 1'b0 && ctrl_single_fsm_cs == SINGLE_IDLE) ctrl_safe_fsm_ns = IDLE;
+        if ((Start_i == 1'b0 && ctrl_single_fsm_cs == SINGLE_IDLE) || (Preemptive_Ready_o == 1'b1 && Preemptive_Trigger_i == 1'b1)) ctrl_safe_fsm_ns = IDLE;
         else if (Start_i == 1'b1 && Safe_configuration_i == 2'b01) ctrl_safe_fsm_ns = TMR_MODE;
         else if (Start_i == 1'b1 && (Safe_configuration_i == 2'b10 | Safe_configuration_i == 2'b11))
           ctrl_safe_fsm_ns = DMR_MODE;
         else ctrl_safe_fsm_ns = SINGLE_MODE;
       end
       TMR_MODE: begin
-        if(ctrl_tmr_fsm_cs[0] == TMR_IDLE
-                && ctrl_tmr_fsm_cs[1] == TMR_IDLE && ctrl_tmr_fsm_cs[2] == TMR_IDLE && Start_i == 1'b0)
+        if((ctrl_tmr_fsm_cs[0] == TMR_IDLE
+                && ctrl_tmr_fsm_cs[1] == TMR_IDLE && ctrl_tmr_fsm_cs[2] == TMR_IDLE && Start_i == 1'b0) ||
+                (Preemptive_Ready_o == 1'b1 && Preemptive_Trigger_i == 1'b1))
           ctrl_safe_fsm_ns = IDLE;
         else if (Switch_TMRtoSingle_s[0] == 1'b1 || Switch_TMRtoSingle_s[1] == 1'b1 || Switch_TMRtoSingle_s[2] == 1'b1)
           ctrl_safe_fsm_ns = SINGLE_MODE;
         else ctrl_safe_fsm_ns = TMR_MODE;
       end
       DMR_MODE: begin
-        if(ctrl_dmr_fsm_cs[0] == DMR_IDLE
-                && ctrl_dmr_fsm_cs[1] == DMR_IDLE && ctrl_dmr_fsm_cs[2] == DMR_IDLE && Start_i == 1'b0)
+        if((ctrl_dmr_fsm_cs[0] == DMR_IDLE
+                && ctrl_dmr_fsm_cs[1] == DMR_IDLE && ctrl_dmr_fsm_cs[2] == DMR_IDLE && Start_i == 1'b0) ||
+                (Preemptive_Ready_o == 1'b1 && Preemptive_Trigger_i == 1'b1))
           ctrl_safe_fsm_ns = IDLE;
         //Todo
         else if (Switch_DMRtoSingle_s[0] == 1'b1 || Switch_DMRtoSingle_s[1] == 1'b1 || Switch_DMRtoSingle_s[2] == 1'b1)
@@ -219,7 +244,6 @@ module safe_FSM #(
   always_comb begin
 
     en_safe_ext_debug_req_s = 1'b0;
-    Single_Boot_s = 1'b0;
     General_boot_s = 1'b0;
     unique case (ctrl_safe_fsm_cs)
       IDLE: begin
@@ -227,9 +251,6 @@ module safe_FSM #(
       end
       BOOT: begin
         General_boot_s = 1'b1;
-      end
-      SINGLE_MODE: begin
-        Single_Boot_s = 1'b1;
       end
       default: begin
         en_safe_ext_debug_req_s = 1'b0;
@@ -278,12 +299,26 @@ module safe_FSM #(
         else ctrl_single_fsm_ns = SINGLE_IDLE;
       end
       SINGLE_START: begin
-        if (Halt_ack_i == Master_Core_i) ctrl_single_fsm_ns = SINGLE_RUN;
+        if (Halt_ack_i == Master_Core_i && ~Preemptive_Continue_i) ctrl_single_fsm_ns = SINGLE_BOOT;
+        else if (Halt_ack_i == Master_Core_i && Preemptive_Continue_i) ctrl_single_fsm_ns = SINGLE_CONTEXT_BOOT;
         else ctrl_single_fsm_ns = SINGLE_START;
       end
+
+      SINGLE_BOOT: begin
+        if (Halt_ack_i == 3'b000) ctrl_single_fsm_ns = SINGLE_RUN;
+        else ctrl_single_fsm_ns = SINGLE_BOOT;
+      end
+
+      SINGLE_CONTEXT_BOOT: begin
+        if (Halt_ack_i == 3'b000)  ctrl_single_fsm_ns = SINGLE_RUN;
+        else ctrl_single_fsm_ns = SINGLE_CONTEXT_BOOT;
+      end
+
       SINGLE_RUN: begin
         if (End_sw_routine_i == 1'b1 && Hart_wfi_i == 3'b111)  //SW STOP
           ctrl_single_fsm_ns = SINGLE_IDLE;
+        else if (Preemptive_Trigger_i == 1'b1)
+            ctrl_single_fsm_ns = SINGLE_SWITCH_INTC;
         else if (Start_i == 1'b0 && Halt_ack_i == 3'b000 && End_sw_routine_i == 1'b0) //External STOP
           ctrl_single_fsm_ns = SINGLE_SYNC_OFF;
         else if (Halt_ack_i == 3'b000 && Safe_configuration_i == 2'b01)  //Switch to others mode TMR
@@ -308,6 +343,21 @@ module safe_FSM #(
         if (Hart_wfi_i == 3'b000) ctrl_single_fsm_ns = SINGLE_IDLE;
         else ctrl_single_fsm_ns = SINGLE_SYNC_OFF;
       end
+
+        //****Preemptive*****//
+      SINGLE_SWITCH_INTC: begin
+        if (Hart_intc_ack_i == Master_Core_i) ctrl_single_fsm_ns = SINGLE_SAVE_CONTEXT;
+        else ctrl_single_fsm_ns = SINGLE_SWITCH_INTC;
+      end
+      SINGLE_SAVE_CONTEXT: begin
+        if (Hart_wfi_i == 3'b111) ctrl_single_fsm_ns = SINGLE_SWITCH_WFI;
+        else ctrl_single_fsm_ns = SINGLE_SAVE_CONTEXT;
+      end
+      SINGLE_SWITCH_WFI: begin
+        if (~Preemptive_Trigger_i) ctrl_single_fsm_ns = SINGLE_IDLE;
+        else ctrl_single_fsm_ns = SINGLE_SWITCH_WFI;
+      end
+        //******************//
       default: begin
         ctrl_single_fsm_ns = SINGLE_IDLE;
       end
@@ -320,9 +370,19 @@ module safe_FSM #(
     Single_Halt_request_s = 3'b000;
     en_single_ext_debug_req_s = 1'b0;
     Enable_Switch_s = 1'b0;
+    Single_Boot_s = 1'b0;
+    Single_Preemptive_intc_s = 3'b000;
+    Single_Preemptive_Ready_s = 1'b0;
     unique case (ctrl_single_fsm_cs)
       SINGLE_START: begin
         Single_Halt_request_s = Master_Core_i;
+        Single_Boot_s = 1'b1;
+      end
+      SINGLE_BOOT: begin
+        Single_Boot_s = 1'b1;
+      end
+      SINGLE_CONTEXT_BOOT: begin
+        Single_Boot_s = 1'b0;
       end
       SINGLE_RUN: begin
         en_single_ext_debug_req_s = 1'b0;
@@ -333,6 +393,18 @@ module safe_FSM #(
       SINGLE_TO_DMR: begin
         Enable_Switch_s = 1'b1;
       end
+
+      SINGLE_SWITCH_INTC: begin
+        Single_Preemptive_intc_s = Master_Core_i;
+      end
+      SINGLE_SAVE_CONTEXT: begin
+        Single_Preemptive_intc_s = 3'b000;
+      end
+      SINGLE_SWITCH_WFI: begin
+        Single_Preemptive_Ready_s = 1'b1;
+        Single_Preemptive_intc_s = 3'b000;
+      end
+
       default: begin
         Single_Halt_request_s = 3'b000;
         en_single_ext_debug_req_s = 1'b0;
@@ -388,13 +460,19 @@ module safe_FSM #(
         end
 
         TMR_START: begin
-          if (Halt_ack_i[i] == 1'b1) ctrl_tmr_fsm_ns[i] = TMR_BOOT;
+          if (Halt_ack_i[i] == 1'b1 && ~Preemptive_Continue_i) ctrl_tmr_fsm_ns[i] = TMR_BOOT;
+          else if (Halt_ack_i[i] == 1'b1 && Preemptive_Continue_i) ctrl_tmr_fsm_ns[i] = TMR_CONTEXT_BOOT;
           else ctrl_tmr_fsm_ns[i] = TMR_START;
         end
 
         TMR_BOOT: begin
           if (Halt_ack_i[i] == 1'b0) ctrl_tmr_fsm_ns[i] = TMR_SYNC;
           else ctrl_tmr_fsm_ns[i] = TMR_BOOT;
+        end
+
+        TMR_CONTEXT_BOOT: begin
+          if (Halt_ack_i[i] == 1'b0) ctrl_tmr_fsm_ns[i] = TMR_SYNC;
+          else ctrl_tmr_fsm_ns[i] = TMR_CONTEXT_BOOT;
         end
 
         TMR_SH_HALT: begin
@@ -423,6 +501,8 @@ module safe_FSM #(
             ctrl_tmr_fsm_ns[i] = TMR_IDLE;
           else if (Safe_configuration_i!=2'b01)
             ctrl_tmr_fsm_ns[i] = TMR_END_SYNC;
+          else if (Preemptive_Trigger_i == 1'b1)
+            ctrl_tmr_fsm_ns[i] = TMR_SWITCH_INTC;
           else if (tmr_error_s == 1'b1) ctrl_tmr_fsm_ns[i] = TMR_SYNCINTC;
           else ctrl_tmr_fsm_ns[i] = TMR_SYNC;
         end
@@ -452,7 +532,23 @@ module safe_FSM #(
           else ctrl_tmr_fsm_ns[i] = TMR_SWSYNC;
         end
         //*********************//
+        TMR_SYNCINTC: begin
 
+        end
+        //****Preemptive*****//
+        TMR_SWITCH_INTC: begin
+          if (Hart_intc_ack_i[0] && Hart_intc_ack_i[1] && Hart_intc_ack_i[2]) ctrl_tmr_fsm_ns[i] = TMR_SAVE_CONTEXT;
+          else ctrl_tmr_fsm_ns[i] = TMR_SWITCH_INTC;
+        end
+        TMR_SAVE_CONTEXT: begin
+          if (Hart_wfi_i[0] == 1'b1 && Hart_wfi_i[1] == 1'b1 && Hart_wfi_i[2]) ctrl_tmr_fsm_ns[i] = TMR_SWITCH_WFI;
+          else ctrl_tmr_fsm_ns[i] = TMR_SAVE_CONTEXT;
+        end
+        TMR_SWITCH_WFI: begin
+          if (~Preemptive_Trigger_i) ctrl_tmr_fsm_ns[i] = TMR_IDLE;
+          else ctrl_tmr_fsm_ns[i] = TMR_SWITCH_WFI;
+        end
+        //******************//
         default: begin
           ctrl_tmr_fsm_ns[i] = TMR_IDLE;
         end
@@ -472,19 +568,28 @@ module safe_FSM #(
       Switch_TMRtoSingle_s[i]      = 1'b0;
       Interrupt_sw_TMR_Resync_s[i] = 1'b0;
       Switch_hostTMRtoSingle_s[i] = 1'b0;
+      TMR_Preemptive_intc_s[i] = 1'b0;
+      TMR_Preemptive_Ready_s[i] = 1'b0;
+
       unique case (ctrl_tmr_fsm_cs[i])
 
         TMR_START: begin
           dbg_halt_req_general_s[i] = 1'b1;
           single_bus_s[i] = 1'b1;
           tmr_voter_enable_s[i] = 1'b1;
-          TMR_Boot_s[i] = 1'b1;
+          if (Preemptive_Continue_i) TMR_Boot_s[i] = 1'b0;
+          else TMR_Boot_s[i] = 1'b1;
         end
 
         TMR_BOOT: begin
           single_bus_s[i] = 1'b1;
           tmr_voter_enable_s[i] = 1'b1;
           TMR_Boot_s[i] = 1'b1;
+        end
+
+        TMR_CONTEXT_BOOT: begin
+          single_bus_s[i] = 1'b1;
+          tmr_voter_enable_s[i] = 1'b1;
         end
 
         TMR_SH_HALT: begin
@@ -543,6 +648,23 @@ module safe_FSM #(
           tmr_voter_enable_s[i] = 1'b1;
         end
 
+        TMR_SWITCH_INTC: begin
+          single_bus_s[i] = 1'b1;
+          tmr_voter_enable_s[i] = 1'b1;
+          TMR_Preemptive_intc_s[i] = 1'b1;
+        end
+        TMR_SAVE_CONTEXT: begin
+          single_bus_s[i] = 1'b1;
+          tmr_voter_enable_s[i] = 1'b1;
+          TMR_Preemptive_intc_s[i] = 1'b0;
+        end
+        TMR_SWITCH_WFI: begin
+          single_bus_s[i] = 1'b1;
+          tmr_voter_enable_s[i] = 1'b1;
+          TMR_Preemptive_intc_s[i] = 1'b0;
+          TMR_Preemptive_Ready_s[i] = 1'b1;
+        end
+
         default: begin
         end
 
@@ -596,13 +718,19 @@ module safe_FSM #(
         end
 
         DMR_START: begin
-          if (Halt_ack_i[i] == 1'b1) ctrl_dmr_fsm_ns[i] = DMR_BOOT;
+          if (Halt_ack_i[i] == 1'b1 && ~Preemptive_Continue_i) ctrl_dmr_fsm_ns[i] = DMR_BOOT;
+          else if (Halt_ack_i[i] == 1'b1 && Preemptive_Continue_i) ctrl_dmr_fsm_ns[i] = DMR_CONTEXT_BOOT;
           else ctrl_dmr_fsm_ns[i] = DMR_START;
         end
 
         DMR_BOOT: begin
           if (Halt_ack_i[i] == 1'b0) ctrl_dmr_fsm_ns[i] = DMR_SYNC;
           else ctrl_dmr_fsm_ns[i] = DMR_BOOT;
+        end
+
+        DMR_CONTEXT_BOOT: begin
+          if (Halt_ack_i[i] == 1'b0) ctrl_dmr_fsm_ns[i] = DMR_SYNC;
+          else ctrl_dmr_fsm_ns[i] = DMR_CONTEXT_BOOT;
         end
 
         DMR_SH_HALT: begin
@@ -629,6 +757,8 @@ module safe_FSM #(
             ctrl_dmr_fsm_ns[i] = DMR_IDLE;
           else if (Safe_configuration_i!=2'b10 & Safe_configuration_i!=2'b11)
             ctrl_dmr_fsm_ns[i] = DMR_END_SYNC;
+          else if (Preemptive_Trigger_i == 1'b1)
+            ctrl_dmr_fsm_ns[i] = DMR_SWITCH_INTC;
           else if (dmr_error_s == 1'b1) ctrl_dmr_fsm_ns[i] = DMR_STOP;
           else ctrl_dmr_fsm_ns[i] = DMR_SYNC;
         end
@@ -661,6 +791,20 @@ module safe_FSM #(
           else ctrl_dmr_fsm_ns[i] = DMR_END;
         end
 
+        //****Preemptive*****//
+        DMR_SWITCH_INTC: begin
+          if (Hart_intc_ack_i == DMR_Mask_i) ctrl_dmr_fsm_ns[i] = DMR_SAVE_CONTEXT;
+          else ctrl_dmr_fsm_ns[i] = DMR_SWITCH_INTC;
+        end
+        DMR_SAVE_CONTEXT: begin
+          if (Hart_wfi_i[0] == 1'b1 && Hart_wfi_i[1] == 1'b1 && Hart_wfi_i[2]) ctrl_dmr_fsm_ns[i] = DMR_SWITCH_WFI;
+          else ctrl_dmr_fsm_ns[i] = DMR_SAVE_CONTEXT;
+        end
+        DMR_SWITCH_WFI: begin
+          if (~Preemptive_Trigger_i) ctrl_dmr_fsm_ns[i] = DMR_IDLE;
+          else ctrl_dmr_fsm_ns[i] = DMR_SWITCH_WFI;
+        end
+        //******************//
         default: begin
           ctrl_dmr_fsm_ns[i] = DMR_IDLE;
         end
@@ -682,6 +826,8 @@ module safe_FSM #(
       dmr_delayed_s[i] = 1'b0;
       DMR_Rec_s[i] = 1'b0;
       Switch_hostDMRtoSingle_s[i]= 1'b0;
+      DMR_Preemptive_intc_s[i] = 1'b0;
+      DMR_Preemptive_Ready_s[i] = 1'b0;
       unique case (ctrl_dmr_fsm_cs[i])
 
         DMR_IDLE: begin
@@ -692,7 +838,8 @@ module safe_FSM #(
           dual_mode_dmr_s[i] = 1'b1;
           DMR_dbg_halt_req_general_s[i] = 1'b1;
           DMR_Single_s[i] = 1'b1;
-          DMR_Boot_s[i] = 1'b1;
+          if (Preemptive_Continue_i) DMR_Boot_s[i] = 1'b0;
+          else DMR_Boot_s[i] = 1'b1;
 
           if (Safe_configuration_i == 2'b11) dmr_delayed_s[i] = 1'b1;
 
@@ -702,6 +849,14 @@ module safe_FSM #(
           dual_mode_dmr_s[i] = 1'b1;
           DMR_Single_s[i] = 1'b1;
           DMR_Boot_s[i] = 1'b1;
+
+          if (Safe_configuration_i == 2'b11) dmr_delayed_s[i] = 1'b1;
+
+        end
+
+        DMR_CONTEXT_BOOT: begin
+          dual_mode_dmr_s[i] = 1'b1;
+          DMR_Single_s[i] = 1'b1;
 
           if (Safe_configuration_i == 2'b11) dmr_delayed_s[i] = 1'b1;
 
@@ -764,6 +919,25 @@ module safe_FSM #(
           if (Safe_configuration_i == 2'b11) dmr_delayed_s[i] = 1'b1;
 
         end
+
+        DMR_SWITCH_INTC: begin
+          dual_mode_dmr_s[i] = 1'b1;
+          DMR_Single_s[i] = 1'b1;
+          DMR_Preemptive_intc_s[i] = 1'b1;
+          if (Safe_configuration_i == 2'b11) dmr_delayed_s[i] = 1'b1;
+        end
+        DMR_SAVE_CONTEXT: begin
+          dual_mode_dmr_s[i] = 1'b1;
+          DMR_Single_s[i] = 1'b1;
+          DMR_Preemptive_intc_s[i] = 1'b0;
+          if (Safe_configuration_i == 2'b11) dmr_delayed_s[i] = 1'b1;
+        end
+        DMR_SWITCH_WFI: begin
+          dual_mode_dmr_s[i] = 1'b1;
+          DMR_Single_s[i] = 1'b1;
+          DMR_Preemptive_intc_s[i] = 1'b0;
+          DMR_Preemptive_Ready_s[i] = 1'b1;
+        end
         default: begin
         end
 
@@ -788,7 +962,7 @@ module safe_FSM #(
   assign set = dmr_delayed_s[0] | dmr_delayed_s[1] | dmr_delayed_s[2];
 
   logic clear;
-  assign clear = (Hart_wfi_i[0] & Hart_wfi_i[1] & Hart_wfi_i[2]) & (~Safe_configuration_i[0] & ~Safe_configuration_i[1]); //Locsktep == '11'
+  assign clear = (Hart_wfi_i[0] & Hart_wfi_i[1] & Hart_wfi_i[2]) & (~Safe_configuration_i[0] | ~Safe_configuration_i[1]); //Locsktep == '11'
 
   logic delay_ff;
   assign Delayed_o = delay_ff | dmr_delayed_s[0] | dmr_delayed_s[1] | dmr_delayed_s[2];
@@ -860,6 +1034,9 @@ module safe_FSM #(
 
   assign Interrupt_Host_Desync_o = Switch_hostDMRtoSingle_s | Switch_hostTMRtoSingle_s;
   //######################//
+
+  assign Preemptive_Ready_o = (Single_Preemptive_Ready_s) | (|TMR_Preemptive_Ready_s) | (|DMR_Preemptive_Ready_s);
+  assign Interrupt_Preemptive_o = Single_Preemptive_intc_s | TMR_Preemptive_intc_s | DMR_Preemptive_intc_s;
 
 endmodule
 
