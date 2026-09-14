@@ -35,7 +35,7 @@ module dmr_comparator #(
     if (core_instr_req_i[0].req || core_instr_req_i[1].req) begin
       if ((core_instr_req_i[0].addr != core_instr_req_i[1].addr) ||
           // Check only wdata if a write request it s ordered
-          (core_instr_req_i[0].wdata != core_instr_req_i[1].wdata) ||
+          ((core_instr_req_i[0].wdata != core_instr_req_i[1].wdata) && ((core_instr_req_i[0].we || (core_instr_req_i[1].we)))) ||
               (core_instr_req_i[0].be != core_instr_req_i[1].be) ||
               (core_instr_req_i[0].we != core_instr_req_i[1].we) ||
               (core_instr_req_i[0].req != core_instr_req_i[1].req)) begin
@@ -47,7 +47,7 @@ module dmr_comparator #(
     if (core_data_req_i[0].req || core_data_req_i[1].req) begin
       if ((core_data_req_i[0].addr != core_data_req_i[1].addr)||
           // Check only wdata if a write request it s ordered
-          (core_data_req_i[0].wdata != core_data_req_i[1].wdata)||
+          ((core_data_req_i[0].wdata != core_data_req_i[1].wdata) && ((core_data_req_i[0].we || (core_data_req_i[1].we)))) ||
               (core_data_req_i[0].be != core_data_req_i[1].be) ||
               (core_data_req_i[0].we != core_data_req_i[1].we) ||
               (core_data_req_i[0].req != core_data_req_i[1].req)) begin
