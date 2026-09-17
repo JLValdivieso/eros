@@ -15,13 +15,13 @@ dependencies:
 
 #  riscv:               { git: "https://github.com/openhwgroup/cv32e40p.git",                rev: a43277c0dc64c02be3f5d713438f315ecffde2b9}
   axi:                  { git: "https://github.com/pulp-platform/axi.git",                   version: 0.39.6                              }
-  axi_mem_if:           { git: "https://github.com/pulp-platform/axi_mem_if.git",            rev: master                                  }
+  axi_mem_if:           { git: "https://github.com/pulp-platform/axi_mem_if.git",            rev: b494701                                 }
 
-  register_interface:   { git: "https://github.com/pulp-platform/register_interface.git",    rev: master                                  }
-  axi2apb:              { git: "https://github.com/pulp-platform/axi2apb.git",               rev: master                                  }
+  register_interface:   { git: "https://github.com/pulp-platform/register_interface.git",    version: 0.4.4                               }
+  axi2apb:              { git: "https://github.com/pulp-platform/axi2apb.git",               rev: 555249d                                 }
 
-  axi_slice:            { git: "https://github.com/pulp-platform/axi_slice.git",             rev: master                                  }
-  axi_obi:              { git: "https://github.com/pulp-platform/axi_obi.git",               rev: main                                    }
+  axi_slice:            { git: "https://github.com/pulp-platform/axi_slice.git",             rev: bc864aa                                 }
+  axi_obi:              { git: "https://github.com/pulp-platform/axi_obi.git",               rev: 205c9bb                                 } 
 
   cv32e20:              { path: "./vendor/openhwgroup_cv32e20"                                                                            }
   cluster_interconnect: { path: "./vendor/pulp_platform_cluster_interconnect"                                                             }

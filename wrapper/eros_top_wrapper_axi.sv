@@ -3,6 +3,14 @@
 // SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
 // Luis Waucquez (luis.waucquez.jimenez@upm.es)
 
+// Purpose: Top-level wrapper that bridges external AXI host buses 
+// to the internal EROS SoC core.
+
+// Primary interfaces: Two slave AXI ports:
+// S00 AXI -> converted and routed to an OBI master AXI -> REG   
+// S01 AXI -> converted to a reg/CSR interface for control/status 
+// AXI64 -> AXI32 -> AXI_LITE -> APB -> OBI 
+
  `include "axi/assign.svh"
  `include "axi/typedef.svh"
 

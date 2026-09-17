@@ -3,6 +3,14 @@
 // SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
 // Jonathan Valdivieso (jonathan.lvaldivieso@upm.es)
 
+// Purpose: Top-level wrapper that bridges external AXI host buses 
+// to the internal EROS SoC core. Parameterized for AXI widths, 
+// hart/bank counts, and flexible bus typedefs.
+
+// Two interfaces:
+// converts S00 AXI to OBI for memory/peripherals (AXI64 -> OBI32), 
+// adapts a PULP-style reg/CSR interface to the eros_top core
+
 `include "axi/typedef.svh"
 `include "axi/assign.svh"
 `include "obi/typedef.svh"
