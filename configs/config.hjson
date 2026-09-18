@@ -16,17 +16,17 @@
 
   BaseAddressConfiguration: {
     CSR: {
-      BaseAddress: 0x20070000
+      BaseAddress: 0x03070000
     }
     # Base address for OBI system bus
     SystemBus: {
-      BaseAddress: 0xF0000000
+      BaseAddress: 0x03040000
     }
     # Base address of the accelerator or external bus, in case of MM accelerator use the same base address of the SystemBus + offset check eros package to avoid conflicts
     MMAcceleratorOrExternalBus: {
-      BaseAddress: 0x00000000
+      BaseAddress: 0x03042000
       # Memory space size
-      Size: 0x41000000
+      Size: 0x00001000
     }
   }
 }

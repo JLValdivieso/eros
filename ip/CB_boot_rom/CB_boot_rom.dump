@@ -1,14 +1,14 @@
 
-CB_boot_rom.elf:     file format elf32-littleriscv
+CB_boot_rom.elf:     file format elf64-littleriscv
 
 
 Disassembly of section .text:
 
-00000000 <entry>:
+0000000000000000 <entry>:
    0:	00000013          	nop
    4:	00000013          	nop
 
-00000008 <wfi_entry>:
+0000000000000008 <wfi_entry>:
    8:	00000013          	nop
    c:	00000013          	nop
   10:	10500073          	wfi
@@ -16,33 +16,33 @@ Disassembly of section .text:
   18:	00000013          	nop
   1c:	00000013          	nop
 
-00000020 <single_boot>:
-  20:	20070537          	lui	a0,0x20070
-  24:	02052503          	lw	a0,32(a0) # 20070020 <restore_sp+0x2006fe74>
+0000000000000020 <single_boot>:
+  20:	03070537          	lui	a0,0x3070
+  24:	02052503          	lw	a0,32(a0) # 3070020 <restore_sp+0x306fe70>
   28:	7b151073          	csrw	dpc,a0
   2c:	7b200073          	dret
-  30:	0000                	.2byte	0x0
-  32:	1300                	.2byte	0x1300
-  34:	0000                	.2byte	0x0
-  36:	1300                	.2byte	0x1300
-  38:	0000                	.2byte	0x0
-  3a:	1300                	.2byte	0x1300
-  3c:	0000                	.2byte	0x0
-  3e:	1300                	.2byte	0x1300
-  40:	0000                	.2byte	0x0
-  42:	1300                	.2byte	0x1300
-  44:	0000                	.2byte	0x0
-  46:	1300                	.2byte	0x1300
-  48:	0000                	.2byte	0x0
-  4a:	1300                	.2byte	0x1300
-  4c:	0000                	.2byte	0x0
-  4e:	1300                	.2byte	0x1300
+  30:	0000                	.insn	2, 0x0000
+  32:	1300                	.insn	2, 0x1300
+  34:	0000                	.insn	2, 0x0000
+  36:	1300                	.insn	2, 0x1300
+  38:	0000                	.insn	2, 0x0000
+  3a:	1300                	.insn	2, 0x1300
+  3c:	0000                	.insn	2, 0x0000
+  3e:	1300                	.insn	2, 0x1300
+  40:	0000                	.insn	2, 0x0000
+  42:	1300                	.insn	2, 0x1300
+  44:	0000                	.insn	2, 0x0000
+  46:	1300                	.insn	2, 0x1300
+  48:	0000                	.insn	2, 0x0000
+  4a:	1300                	.insn	2, 0x1300
+  4c:	0000                	.insn	2, 0x0000
+  4e:	1300                	.insn	2, 0x1300
 
-00000050 <debug_entry>:
+0000000000000050 <debug_entry>:
   50:	7b351073          	csrw	dscratch1,a0
   54:	7b241073          	csrw	dscratch0,s0
-  58:	20070537          	lui	a0,0x20070
-  5c:	01452503          	lw	a0,20(a0) # 20070014 <restore_sp+0x2006fe68>
+  58:	03070537          	lui	a0,0x3070
+  5c:	01452503          	lw	a0,20(a0) # 3070014 <restore_sp+0x306fe64>
   60:	02050463          	beqz	a0,88 <halt_boot>
   64:	00254513          	xori	a0,a0,2
   68:	00051463          	bnez	a0,70 <debug_entry+0x20>
@@ -50,133 +50,132 @@ Disassembly of section .text:
   70:	0ff0000f          	fence
   74:	10000537          	lui	a0,0x10000
   78:	10001437          	lui	s0,0x10001
-  7c:	83040413          	addi	s0,s0,-2000 # 10000830 <restore_sp+0x10000684>
+  7c:	8304041b          	addiw	s0,s0,-2000 # 10000830 <restore_sp+0x10000680>
   80:	00040067          	jr	s0
   84:	00000013          	nop
 
-00000088 <halt_boot>:
-  88:	20070f37          	lui	t5,0x20070
-  8c:	03cf2f83          	lw	t6,60(t5) # 2007003c <restore_sp+0x2006fe90>
+0000000000000088 <halt_boot>:
+  88:	03070f37          	lui	t5,0x3070
+  8c:	03cf2f83          	lw	t6,60(t5) # 307003c <restore_sp+0x306fe8c>
   90:	002fdf93          	srli	t6,t6,0x2
   94:	000f9663          	bnez	t6,a0 <halt_load_preemptive_context>
 
-00000098 <halt_load_sync_context>:
+0000000000000098 <halt_load_sync_context>:
   98:	024f2f03          	lw	t5,36(t5)
-  9c:	0080006f          	j	a4 <halt_load_context>
+  9c:	00c0006f          	j	a8 <halt_load_context>
 
-000000a0 <halt_load_preemptive_context>:
-  a0:	038f2f03          	lw	t5,56(t5)
+00000000000000a0 <halt_load_preemptive_context>:
+  a0:	020f2e23          	sw	zero,60(t5)
+  a4:	038f2f03          	lw	t5,56(t5)
 
-000000a4 <halt_load_context>:
-  a4:	000f2f83          	lw	t6,0(t5)
-  a8:	300f9073          	csrw	mstatus,t6
-  ac:	004f2f83          	lw	t6,4(t5)
-  b0:	304f9073          	csrw	mie,t6
-  b4:	008f2f83          	lw	t6,8(t5)
-  b8:	305f9073          	csrw	mtvec,t6
-  bc:	00cf2f83          	lw	t6,12(t5)
-  c0:	341f9073          	csrw	mepc,t6
-  c4:	010f2f83          	lw	t6,16(t5)
-  c8:	343f9073          	csrw	mtval,t6
-  cc:	014f2083          	lw	ra,20(t5)
-  d0:	018f2103          	lw	sp,24(t5)
-  d4:	01cf2183          	lw	gp,28(t5)
-  d8:	020f2203          	lw	tp,32(t5)
-  dc:	200702b7          	lui	t0,0x20070
-  e0:	0302a303          	lw	t1,48(t0) # 20070030 <restore_sp+0x2006fe84>
-  e4:	0ff0000f          	fence
-  e8:	08031a63          	bnez	t1,17c <store_stack>
+00000000000000a8 <halt_load_context>:
+  a8:	000f2f83          	lw	t6,0(t5)
+  ac:	300f9073          	csrw	mstatus,t6
+  b0:	004f2f83          	lw	t6,4(t5)
+  b4:	304f9073          	csrw	mie,t6
+  b8:	008f2f83          	lw	t6,8(t5)
+  bc:	305f9073          	csrw	mtvec,t6
+  c0:	00cf2f83          	lw	t6,12(t5)
+  c4:	341f9073          	csrw	mepc,t6
+  c8:	010f2f83          	lw	t6,16(t5)
+  cc:	343f9073          	csrw	mtval,t6
+  d0:	014f2083          	lw	ra,20(t5)
+  d4:	018f2103          	lw	sp,24(t5)
+  d8:	01cf2183          	lw	gp,28(t5)
+  dc:	020f2203          	lw	tp,32(t5)
+  e0:	030702b7          	lui	t0,0x3070
+  e4:	0302a303          	lw	t1,48(t0) # 3070030 <restore_sp+0x306fe80>
+  e8:	0ff0000f          	fence
+  ec:	08031a63          	bnez	t1,180 <store_stack>
 
-000000ec <load_register>:
-  ec:	024f2283          	lw	t0,36(t5)
-  f0:	028f2303          	lw	t1,40(t5)
-  f4:	02cf2383          	lw	t2,44(t5)
-  f8:	030f2403          	lw	s0,48(t5)
-  fc:	034f2483          	lw	s1,52(t5)
- 100:	038f2503          	lw	a0,56(t5)
- 104:	03cf2583          	lw	a1,60(t5)
- 108:	040f2603          	lw	a2,64(t5)
- 10c:	044f2683          	lw	a3,68(t5)
- 110:	048f2703          	lw	a4,72(t5)
- 114:	04cf2783          	lw	a5,76(t5)
- 118:	050f2803          	lw	a6,80(t5)
- 11c:	054f2883          	lw	a7,84(t5)
- 120:	058f2903          	lw	s2,88(t5)
- 124:	05cf2983          	lw	s3,92(t5)
- 128:	060f2a03          	lw	s4,96(t5)
- 12c:	064f2a83          	lw	s5,100(t5)
- 130:	068f2b03          	lw	s6,104(t5)
- 134:	06cf2b83          	lw	s7,108(t5)
- 138:	070f2c03          	lw	s8,112(t5)
- 13c:	074f2c83          	lw	s9,116(t5)
- 140:	078f2d03          	lw	s10,120(t5)
- 144:	07cf2d83          	lw	s11,124(t5)
- 148:	080f2e03          	lw	t3,128(t5)
- 14c:	084f2e83          	lw	t4,132(t5)
- 150:	090f2f83          	lw	t6,144(t5)
- 154:	0ff0000f          	fence
- 158:	7b1f9073          	csrw	dpc,t6
- 15c:	08cf2f83          	lw	t6,140(t5)
- 160:	088f2f03          	lw	t5,136(t5)
- 164:	7b200073          	dret
- 168:	00000013          	nop
+00000000000000f0 <load_register>:
+  f0:	024f2283          	lw	t0,36(t5)
+  f4:	028f2303          	lw	t1,40(t5)
+  f8:	02cf2383          	lw	t2,44(t5)
+  fc:	030f2403          	lw	s0,48(t5)
+ 100:	034f2483          	lw	s1,52(t5)
+ 104:	038f2503          	lw	a0,56(t5)
+ 108:	03cf2583          	lw	a1,60(t5)
+ 10c:	040f2603          	lw	a2,64(t5)
+ 110:	044f2683          	lw	a3,68(t5)
+ 114:	048f2703          	lw	a4,72(t5)
+ 118:	04cf2783          	lw	a5,76(t5)
+ 11c:	050f2803          	lw	a6,80(t5)
+ 120:	054f2883          	lw	a7,84(t5)
+ 124:	058f2903          	lw	s2,88(t5)
+ 128:	05cf2983          	lw	s3,92(t5)
+ 12c:	060f2a03          	lw	s4,96(t5)
+ 130:	064f2a83          	lw	s5,100(t5)
+ 134:	068f2b03          	lw	s6,104(t5)
+ 138:	06cf2b83          	lw	s7,108(t5)
+ 13c:	070f2c03          	lw	s8,112(t5)
+ 140:	074f2c83          	lw	s9,116(t5)
+ 144:	078f2d03          	lw	s10,120(t5)
+ 148:	07cf2d83          	lw	s11,124(t5)
+ 14c:	080f2e03          	lw	t3,128(t5)
+ 150:	084f2e83          	lw	t4,132(t5)
+ 154:	090f2f83          	lw	t6,144(t5)
+ 158:	0ff0000f          	fence
+ 15c:	7b1f9073          	csrw	dpc,t6
+ 160:	08cf2f83          	lw	t6,140(t5)
+ 164:	088f2f03          	lw	t5,136(t5)
+ 168:	7b200073          	dret
  16c:	00000013          	nop
  170:	00000013          	nop
  174:	00000013          	nop
- 178:	f11ff06f          	j	88 <halt_boot>
+ 178:	00000013          	nop
+ 17c:	f0dff06f          	j	88 <halt_boot>
 
-0000017c <store_stack>:
- 17c:	0342a303          	lw	t1,52(t0)
- 180:	0ff0000f          	fence
- 184:	f66104e3          	beq	sp,t1,ec <load_register>
- 188:	094f0393          	addi	t2,t5,148
+0000000000000180 <store_stack>:
+ 180:	0342a303          	lw	t1,52(t0)
+ 184:	0ff0000f          	fence
+ 188:	f66104e3          	beq	sp,t1,f0 <load_register>
+ 18c:	094f0393          	addi	t2,t5,148
 
-0000018c <load_stack>:
- 18c:	0003ae83          	lw	t4,0(t2)
- 190:	01d12023          	sw	t4,0(sp)
- 194:	00610c63          	beq	sp,t1,1ac <restore_sp>
- 198:	00438393          	addi	t2,t2,4
- 19c:	00410113          	addi	sp,sp,4
- 1a0:	fedff06f          	j	18c <load_stack>
- 1a4:	00000013          	nop
+0000000000000190 <load_stack>:
+ 190:	0003ae83          	lw	t4,0(t2)
+ 194:	01d12023          	sw	t4,0(sp)
+ 198:	00610c63          	beq	sp,t1,1b0 <restore_sp>
+ 19c:	00438393          	addi	t2,t2,4
+ 1a0:	00410113          	addi	sp,sp,4
+ 1a4:	fedff06f          	j	190 <load_stack>
  1a8:	00000013          	nop
+ 1ac:	00000013          	nop
 
-000001ac <restore_sp>:
- 1ac:	018f2103          	lw	sp,24(t5)
- 1b0:	f3dff06f          	j	ec <load_register>
- 1b4:	00000013          	nop
+00000000000001b0 <restore_sp>:
+ 1b0:	018f2103          	lw	sp,24(t5)
+ 1b4:	f3dff06f          	j	f0 <load_register>
  1b8:	00000013          	nop
- 1bc:	0000                	.2byte	0x0
- 1be:	1300                	.2byte	0x1300
- 1c0:	0000                	.2byte	0x0
- 1c2:	1300                	.2byte	0x1300
- 1c4:	0000                	.2byte	0x0
- 1c6:	1300                	.2byte	0x1300
- 1c8:	0000                	.2byte	0x0
- 1ca:	1300                	.2byte	0x1300
- 1cc:	0000                	.2byte	0x0
- 1ce:	1300                	.2byte	0x1300
- 1d0:	0000                	.2byte	0x0
- 1d2:	1300                	.2byte	0x1300
- 1d4:	0000                	.2byte	0x0
- 1d6:	1300                	.2byte	0x1300
- 1d8:	0000                	.2byte	0x0
- 1da:	1300                	.2byte	0x1300
- 1dc:	0000                	.2byte	0x0
- 1de:	1300                	.2byte	0x1300
- 1e0:	0000                	.2byte	0x0
- 1e2:	1300                	.2byte	0x1300
- 1e4:	0000                	.2byte	0x0
- 1e6:	1300                	.2byte	0x1300
- 1e8:	0000                	.2byte	0x0
- 1ea:	1300                	.2byte	0x1300
- 1ec:	0000                	.2byte	0x0
- 1ee:	1300                	.2byte	0x1300
- 1f0:	0000                	.2byte	0x0
- 1f2:	1300                	.2byte	0x1300
- 1f4:	0000                	.2byte	0x0
- 1f6:	1300                	.2byte	0x1300
- 1f8:	0000                	.2byte	0x0
- 1fa:	1300                	.2byte	0x1300
- 1fc:	0000                	.2byte	0x0
- 1fe:	1300                	.2byte	0x1300
+ 1bc:	00000013          	nop
+ 1c0:	0000                	.insn	2, 0x0000
+ 1c2:	1300                	.insn	2, 0x1300
+ 1c4:	0000                	.insn	2, 0x0000
+ 1c6:	1300                	.insn	2, 0x1300
+ 1c8:	0000                	.insn	2, 0x0000
+ 1ca:	1300                	.insn	2, 0x1300
+ 1cc:	0000                	.insn	2, 0x0000
+ 1ce:	1300                	.insn	2, 0x1300
+ 1d0:	0000                	.insn	2, 0x0000
+ 1d2:	1300                	.insn	2, 0x1300
+ 1d4:	0000                	.insn	2, 0x0000
+ 1d6:	1300                	.insn	2, 0x1300
+ 1d8:	0000                	.insn	2, 0x0000
+ 1da:	1300                	.insn	2, 0x1300
+ 1dc:	0000                	.insn	2, 0x0000
+ 1de:	1300                	.insn	2, 0x1300
+ 1e0:	0000                	.insn	2, 0x0000
+ 1e2:	1300                	.insn	2, 0x1300
+ 1e4:	0000                	.insn	2, 0x0000
+ 1e6:	1300                	.insn	2, 0x1300
+ 1e8:	0000                	.insn	2, 0x0000
+ 1ea:	1300                	.insn	2, 0x1300
+ 1ec:	0000                	.insn	2, 0x0000
+ 1ee:	1300                	.insn	2, 0x1300
+ 1f0:	0000                	.insn	2, 0x0000
+ 1f2:	1300                	.insn	2, 0x1300
+ 1f4:	0000                	.insn	2, 0x0000
+ 1f6:	1300                	.insn	2, 0x1300
+ 1f8:	0000                	.insn	2, 0x0000
+ 1fa:	1300                	.insn	2, 0x1300
+ 1fc:	0000                	.insn	2, 0x0000
+ 1fe:	1300                	.insn	2, 0x1300
