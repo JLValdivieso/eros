@@ -13,6 +13,7 @@ module cpu_system
     parameter HARTID = 32'h01,
     parameter eros_pkg::cpu_type_e CPU = eros_pkg::CPU_type,
     parameter NMASTER_COPROC_RND = eros_pkg::NMASTER_COPROC == 0 ? 1 : eros_pkg::NMASTER_COPROC,
+    parameter bit ENABLE_ILA = 1'b0, // ILA ENABLE
     parameter DM_HALTADDRESS = eros_pkg::DEBUG_BOOTROM_START_ADDRESS + 32'h50
 ) (
     // Clock and Reset
@@ -617,6 +618,147 @@ module cpu_system
 
 
   end else begin : gen_eros_cv32e20
+
+generate
+if (ENABLE_ILA) begin : gen_cpu_debug
+    ///////////////////////////
+    // CPU SYSTEM DEBUG ILA  //
+    ///////////////////////////
+
+    // --------------------------------------------------
+    // Global CPU Status
+    // --------------------------------------------------
+
+    (* mark_debug = "true" *) logic        dbg_rst_n;
+    (* mark_debug = "true" *) logic        dbg_fetch_enable;
+
+    assign dbg_rst_n        = rst_ni;
+    assign dbg_fetch_enable = fetch_enable;
+
+    // --------------------------------------------------
+    // HART 0 - Instruction OBI (full visibility)
+    // --------------------------------------------------
+
+    // Address phase
+    (* mark_debug = "true" *) logic        h0_i_req;
+    (* mark_debug = "true" *) logic        h0_i_gnt;
+    (* mark_debug = "true" *) logic [31:0] h0_i_addr;
+    // Response phase
+    (* mark_debug = "true" *) logic        h0_i_rvalid;
+    (* mark_debug = "true" *) logic [31:0] h0_i_rdata;
+
+    assign h0_i_req    = core_instr_req_o[0].req;
+    assign h0_i_gnt    = core_instr_resp_i[0].gnt;
+    assign h0_i_addr   = core_instr_req_o[0].addr;
+    assign h0_i_rvalid = core_instr_resp_i[0].rvalid;
+    assign h0_i_rdata  = core_instr_resp_i[0].rdata;
+
+    // --------------------------------------------------
+    // HART 0 - Data OBI (full visibility)
+    // --------------------------------------------------
+
+    // Address phase
+    (* mark_debug = "true" *) logic        h0_d_req;
+    (* mark_debug = "true" *) logic        h0_d_gnt;
+    (* mark_debug = "true" *) logic        h0_d_we;
+    (* mark_debug = "true" *) logic [31:0] h0_d_addr;
+    (* mark_debug = "true" *) logic [31:0] h0_d_wdata;
+    // Response phase
+    (* mark_debug = "true" *) logic        h0_d_rvalid;
+    (* mark_debug = "true" *) logic [31:0] h0_d_rdata;
+
+    assign h0_d_req    = core_data_req_o[0].req;
+    assign h0_d_gnt    = core_data_resp_i[0].gnt;
+    assign h0_d_we     = core_data_req_o[0].we;
+    assign h0_d_addr   = core_data_req_o[0].addr;
+    assign h0_d_wdata  = core_data_req_o[0].wdata;
+    assign h0_d_rvalid = core_data_resp_i[0].rvalid;
+    assign h0_d_rdata  = core_data_resp_i[0].rdata;
+
+    // --------------------------------------------------
+    // HART 0 - Liveness (1 bit each, cheap and high-value)
+    // --------------------------------------------------
+
+    (* mark_debug = "true" *) logic h0_sleep;   // core in WFI
+    (* mark_debug = "true" *) logic h0_halted;  // halted by debug
+
+    assign h0_sleep  = sleep_o[0];
+    assign h0_halted = debug_mode_o[0];
+
+    // --------------------------------------------------
+    // HART 1 - Instruction OBI (skeleton)
+    // --------------------------------------------------
+
+    (* mark_debug = "true" *) logic        h1_i_req;
+    (* mark_debug = "true" *) logic        h1_i_gnt;
+    (* mark_debug = "true" *) logic [31:0] h1_i_addr;
+
+    assign h1_i_req  = core_instr_req_o[1].req;
+    assign h1_i_gnt  = core_instr_resp_i[1].gnt;
+    assign h1_i_addr = core_instr_req_o[1].addr;
+
+    // --------------------------------------------------
+    // HART 1 - Data OBI (skeleton)
+    // --------------------------------------------------
+
+    (* mark_debug = "true" *) logic        h1_d_req;
+    (* mark_debug = "true" *) logic        h1_d_gnt;
+    (* mark_debug = "true" *) logic        h1_d_we;
+    (* mark_debug = "true" *) logic [31:0] h1_d_addr;
+
+    assign h1_d_req  = core_data_req_o[1].req;
+    assign h1_d_gnt  = core_data_resp_i[1].gnt;
+    assign h1_d_we   = core_data_req_o[1].we;
+    assign h1_d_addr = core_data_req_o[1].addr;
+
+    // --------------------------------------------------
+    // HART 1 - Liveness
+    // --------------------------------------------------
+
+    (* mark_debug = "true" *) logic h1_sleep;
+    (* mark_debug = "true" *) logic h1_halted;
+
+    assign h1_sleep  = sleep_o[1];
+    assign h1_halted = debug_mode_o[1];
+
+    // --------------------------------------------------
+    // HART 2 - Instruction OBI (skeleton)
+    // --------------------------------------------------
+
+    (* mark_debug = "true" *) logic        h2_i_req;
+    (* mark_debug = "true" *) logic        h2_i_gnt;
+    (* mark_debug = "true" *) logic [31:0] h2_i_addr;
+
+    assign h2_i_req  = core_instr_req_o[2].req;
+    assign h2_i_gnt  = core_instr_resp_i[2].gnt;
+    assign h2_i_addr = core_instr_req_o[2].addr;
+
+    // --------------------------------------------------
+    // HART 2 - Data OBI (skeleton)
+    // --------------------------------------------------
+
+    (* mark_debug = "true" *) logic        h2_d_req;
+    (* mark_debug = "true" *) logic        h2_d_gnt;
+    (* mark_debug = "true" *) logic        h2_d_we;
+    (* mark_debug = "true" *) logic [31:0] h2_d_addr;
+
+    assign h2_d_req  = core_data_req_o[2].req;
+    assign h2_d_gnt  = core_data_resp_i[2].gnt;
+    assign h2_d_we   = core_data_req_o[2].we;
+    assign h2_d_addr = core_data_req_o[2].addr;
+
+    // --------------------------------------------------
+    // HART 2 - Liveness
+    // --------------------------------------------------
+
+    (* mark_debug = "true" *) logic h2_sleep;
+    (* mark_debug = "true" *) logic h2_halted;
+
+    assign h2_sleep  = sleep_o[2];
+    assign h2_halted = debug_mode_o[2];
+end
+endgenerate
+
 
   // instantiate the core 0
   cve2_top #(
