@@ -5,6 +5,7 @@
 
 module cpu_system
   import eros_pkg::*;
+  import cve2_pkg::*;
 #(
     parameter type obi_req_t            = logic,
     parameter type obi_resp_t           = logic,
@@ -128,7 +129,7 @@ module cpu_system
 
 
 
-  if (CPU == CV32E40P) begin : gen_eros_cv32e40p
+/*   if (CPU == CV32E40P) begin : gen_eros_cv32e40p
     cv32e40p_top #(
         .COREV_PULP      (0),
         .COREV_CLUSTER   (0),
@@ -618,7 +619,7 @@ module cpu_system
 
 
   end else begin : gen_eros_cv32e20
-
+*/
 generate
 if (ENABLE_ILA) begin : gen_cpu_debug
     ///////////////////////////
@@ -989,5 +990,5 @@ endgenerate
     assign cvxif_resp[2].result = '0;
     
 
-  end
+//   end
 endmodule
