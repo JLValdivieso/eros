@@ -77,7 +77,7 @@ module cpu_system
 
 
   // eXtension Interface v0.2.0
-     if_xif #() ext_if ();
+    //  if_xif #() ext_if ();
 
   // eXtension Interface v1.0.0
   typedef struct packed {
@@ -630,11 +630,11 @@ if (ENABLE_ILA) begin : gen_cpu_debug
     // Global CPU Status
     // --------------------------------------------------
 
-    (* mark_debug = "true" *) logic        dbg_rst_n;
-    (* mark_debug = "true" *) logic        dbg_fetch_enable;
+    // (* mark_debug = "true" *) logic        dbg_rst_n;
+    // (* mark_debug = "true" *) logic        dbg_fetch_enable;
 
-    assign dbg_rst_n        = rst_ni;
-    assign dbg_fetch_enable = fetch_enable;
+    // assign dbg_rst_n        = rst_ni;
+    // assign dbg_fetch_enable = fetch_enable;
 
     // --------------------------------------------------
     // HART 0 - Instruction OBI (full visibility)
@@ -680,11 +680,11 @@ if (ENABLE_ILA) begin : gen_cpu_debug
     // HART 0 - Liveness (1 bit each, cheap and high-value)
     // --------------------------------------------------
 
-    (* mark_debug = "true" *) logic h0_sleep;   // core in WFI
-    (* mark_debug = "true" *) logic h0_halted;  // halted by debug
+    // (* mark_debug = "true" *) logic h0_sleep;   // core in WFI
+    // (* mark_debug = "true" *) logic h0_halted;  // halted by debug
 
-    assign h0_sleep  = sleep_o[0];
-    assign h0_halted = debug_mode_o[0];
+    // assign h0_sleep  = sleep_o[0];
+    // assign h0_halted = debug_mode_o[0];
 
     // --------------------------------------------------
     // HART 1 - Instruction OBI (skeleton)
@@ -702,25 +702,25 @@ if (ENABLE_ILA) begin : gen_cpu_debug
     // HART 1 - Data OBI (skeleton)
     // --------------------------------------------------
 
-    (* mark_debug = "true" *) logic        h1_d_req;
-    (* mark_debug = "true" *) logic        h1_d_gnt;
-    (* mark_debug = "true" *) logic        h1_d_we;
-    (* mark_debug = "true" *) logic [31:0] h1_d_addr;
+    // (* mark_debug = "true" *) logic        h1_d_req;
+    // (* mark_debug = "true" *) logic        h1_d_gnt;
+    // (* mark_debug = "true" *) logic        h1_d_we;
+    // (* mark_debug = "true" *) logic [31:0] h1_d_addr;
 
-    assign h1_d_req  = core_data_req_o[1].req;
-    assign h1_d_gnt  = core_data_resp_i[1].gnt;
-    assign h1_d_we   = core_data_req_o[1].we;
-    assign h1_d_addr = core_data_req_o[1].addr;
+    // assign h1_d_req  = core_data_req_o[1].req;
+    // assign h1_d_gnt  = core_data_resp_i[1].gnt;
+    // assign h1_d_we   = core_data_req_o[1].we;
+    // assign h1_d_addr = core_data_req_o[1].addr;
 
     // --------------------------------------------------
     // HART 1 - Liveness
     // --------------------------------------------------
 
-    (* mark_debug = "true" *) logic h1_sleep;
-    (* mark_debug = "true" *) logic h1_halted;
+    // (* mark_debug = "true" *) logic h1_sleep;
+    // (* mark_debug = "true" *) logic h1_halted;
 
-    assign h1_sleep  = sleep_o[1];
-    assign h1_halted = debug_mode_o[1];
+    // assign h1_sleep  = sleep_o[1];
+    // assign h1_halted = debug_mode_o[1];
 
     // --------------------------------------------------
     // HART 2 - Instruction OBI (skeleton)
@@ -738,25 +738,25 @@ if (ENABLE_ILA) begin : gen_cpu_debug
     // HART 2 - Data OBI (skeleton)
     // --------------------------------------------------
 
-    (* mark_debug = "true" *) logic        h2_d_req;
-    (* mark_debug = "true" *) logic        h2_d_gnt;
-    (* mark_debug = "true" *) logic        h2_d_we;
-    (* mark_debug = "true" *) logic [31:0] h2_d_addr;
+    // (* mark_debug = "true" *) logic        h2_d_req;
+    // (* mark_debug = "true" *) logic        h2_d_gnt;
+    // (* mark_debug = "true" *) logic        h2_d_we;
+    // (* mark_debug = "true" *) logic [31:0] h2_d_addr;
 
-    assign h2_d_req  = core_data_req_o[2].req;
-    assign h2_d_gnt  = core_data_resp_i[2].gnt;
-    assign h2_d_we   = core_data_req_o[2].we;
-    assign h2_d_addr = core_data_req_o[2].addr;
+    // assign h2_d_req  = core_data_req_o[2].req;
+    // assign h2_d_gnt  = core_data_resp_i[2].gnt;
+    // assign h2_d_we   = core_data_req_o[2].we;
+    // assign h2_d_addr = core_data_req_o[2].addr;
 
     // --------------------------------------------------
     // HART 2 - Liveness
     // --------------------------------------------------
 
-    (* mark_debug = "true" *) logic h2_sleep;
-    (* mark_debug = "true" *) logic h2_halted;
+    // (* mark_debug = "true" *) logic h2_sleep;
+    // (* mark_debug = "true" *) logic h2_halted;
 
-    assign h2_sleep  = sleep_o[2];
-    assign h2_halted = debug_mode_o[2];
+    // assign h2_sleep  = sleep_o[2];
+    // assign h2_halted = debug_mode_o[2];
 end
 endgenerate
 

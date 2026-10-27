@@ -22,8 +22,8 @@ module memory_sys #(
 );
   logic [NUM_BANKS-1:0] ram_valid_q;
 
-  localparam int NumWords = 32 * 1024 / 4;
-  localparam int AddrWidth = $clog2(32 * 1024);
+  localparam int NumWords = 64 * 1024 / 4; // Change from 32KiB to 64 KiB per bank 
+  localparam int AddrWidth = $clog2(64 * 1024);
 
   for (genvar i = 0; i < NUM_BANKS; i++) begin : gen_sram
 
@@ -40,7 +40,7 @@ module memory_sys #(
 
 
 
-    //Fixed to 8KWords per bank (32KB)
+    //Fixed to 16KWords per bank (64KB)
     sram_wrapper #(
         .NumWords (NumWords),
         .DataWidth(32'd32)

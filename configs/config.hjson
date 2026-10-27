@@ -16,7 +16,7 @@
 
   BaseAddressConfiguration: {
     CSR: {
-      BaseAddress: 0x03070000
+      BaseAddress: 0x03080000
     }
     # Base address for OBI system bus
     SystemBus: {

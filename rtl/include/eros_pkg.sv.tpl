@@ -64,7 +64,7 @@ package eros_pkg;
   localparam SAFE_CSR_BASE_ADDRESS = 32'h${BaseAddressConfiguration.CSR.BaseAddress}; /*core_v_mini_mcu_pkg::EXT_PERIPHERAL_START_ADDRESS;*/
 
 
-  localparam int unsigned MEM_SIZE = 32'h00010000;
+  localparam int unsigned MEM_SIZE = 32'h00020000;
   localparam int unsigned NUM_BANKS = 2;
 
   // Internal BUS-REGISTER slave address map
@@ -116,12 +116,12 @@ package eros_pkg;
   localparam logic [31:0] EXTERNAL_PERIPHERAL_IDX = 32'd2;
 
   localparam logic [31:0] MEMORY_RAM0_START_ADDRESS = GLOBAL_BASE_ADDRESS + 32'h00020000;
-  localparam logic [31:0] MEMORY_RAM0_SIZE = 32'h00008000;
+  localparam logic [31:0] MEMORY_RAM0_SIZE = 32'h000010000;
   localparam logic [31:0] MEMORY_RAM0_END_ADDRESS = MEMORY_RAM0_START_ADDRESS + MEMORY_RAM0_SIZE;
   localparam logic [31:0] MEMORY_RAM0_IDX = 32'd3;
 
-  localparam logic [31:0] MEMORY_RAM1_START_ADDRESS = GLOBAL_BASE_ADDRESS + 32'h00028000;
-  localparam logic [31:0] MEMORY_RAM1_SIZE = 32'h00008000;
+  localparam logic [31:0] MEMORY_RAM1_START_ADDRESS = GLOBAL_BASE_ADDRESS + 32'h00030000;
+  localparam logic [31:0] MEMORY_RAM1_SIZE = 32'h000010000;
   localparam logic [31:0] MEMORY_RAM1_END_ADDRESS = MEMORY_RAM1_START_ADDRESS + MEMORY_RAM1_SIZE;
   localparam logic [31:0] MEMORY_RAM1_IDX = 32'd4;
 
