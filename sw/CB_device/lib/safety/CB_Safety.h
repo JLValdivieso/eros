@@ -20,10 +20,19 @@ extern "C" {
 #include "CB_heep_ctrl_regs.h"
 #include "Safe_wrapper_ctrl_regs.h"
 #include "CB_Safety_Config.h"
+#include "eros_tasks_addr.h"
 
-#define CHECK_RAM_ADDRESS       0xF002B000
+// #define FREE_LOCATION_POINTER   0xF002A000
 
-#define FREE_LOCATION_POINTER   0xF002A000
+// Preemption timing: handler_preemptive_store_context resets mcycle at its
+// entry and writes it at the end of the save (cycles spent in the handler)
+// into the free bytes after the 148 B frame of the PREEMPTIVE_CONTEXT slot
+// (the slot must be at least 156 B, it is 160 B in the layout of
+// util/eros_tasks_gen.py). Set it to 0 for a 148 B slot.
+#ifndef PREEMPT_TIMING
+#define PREEMPT_TIMING 1
+#endif
+#define PREEMPT_TIMING_END_OFFSET   152
 
 //Functions
 #define INTERRUPT_HANDLER_ABI __attribute__((aligned(4), interrupt))
@@ -31,11 +40,11 @@ extern "C" {
 __attribute__((aligned(4))) void Safe_Activate(unsigned int mode);
 __attribute__((aligned(4))) void Safe_Stop(unsigned int master);
 __attribute__((aligned(4),always_inline)) inline void Set_Critical_Section(unsigned int critical){
-        volatile unsigned int *Priv_Reg = SAFE_WRAPPER_CTRL_BASEADDRESS | SAFE_WRAPPER_CTRL_CRITICAL_SECTION_REG_OFFSET;
+        volatile unsigned int *Priv_Reg = (volatile unsigned int *)(SAFE_WRAPPER_CTRL_BASEADDRESS +
+                              SAFE_WRAPPER_CTRL_CRITICAL_SECTION_REG_OFFSET);
         *Priv_Reg = critical;}
 
 __attribute__((aligned(4))) void Store_Checkpoint(void);
-__attribute__((aligned(4))) void Check_RF(void);
 
 //Handlers
 INTERRUPT_HANDLER_ABI void handler_tmr_recoverysync(void);
