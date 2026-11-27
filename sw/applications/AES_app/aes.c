@@ -71,6 +71,28 @@ NOTE:   String length must be evenly divisible by 16byte (str_len % 16 == 0)
 typedef uint8_t state_t[4][4];
 
 
+#include "base_address.h"        // PRIVATE_REG_BASEADDRESS
+#include "CPU_Private_regs.h"    // CPU_PRIVATE_CORE_ID_CORE_ID_OFFSET
+
+#define INTERNAL_PRIVATE_REG_ID  (CPU_PRIVATE_CORE_ID_CORE_ID_OFFSET + PRIVATE_REG_BASEADDRESS) // 0x03040000
+#define EROS_INJECT_ADDR         0x0306A100
+
+static void eros_fault_inject(state_t* state)
+{
+    volatile unsigned int *injection = (volatile unsigned int *)EROS_INJECT_ADDR;
+    volatile unsigned int *core_id   = (volatile unsigned int *)INTERNAL_PRIVATE_REG_ID; 
+
+    if (injection[0] == 1 && injection[1] == 0) {
+        injection[0] = 0;   
+        // Left-Shift 2 bits. for DMR mode
+        // Core0 (001) -> (000)
+        // Core1 (010) -> (000)
+        // Core2 (100) -> (001) Erroneous value
+        (*state)[1][1] = (*state)[1][1] + ((*core_id) >> 2);
+    }
+}
+
+
 
 // The lookup-tables are marked const so they can be placed in read-only storage instead of RAM
 // The numbers below can be computed dynamically trading ROM for RAM -
@@ -156,12 +178,6 @@ __attribute__((aligned(4))) static void KeyExpansion(uint8_t* RoundKey, const ui
     RoundKey[(i * 4) + 3] = Key[(i * 4) + 3];
   }
 
-#if defined(DCLS) || defined(LOCKSTEP)
-  /*CHECKPOINT*/
-  Store_Checkpoint();
-  /************/
-#endif
-
   // All other round keys are found from the previous round keys.
   for (i = Nk; i < Nb * (Nr + 1); ++i)
   {
@@ -221,17 +237,17 @@ __attribute__((aligned(4))) static void KeyExpansion(uint8_t* RoundKey, const ui
   }
 }
 
-__attribute__((aligned(4))) void AES_init_ctx(struct AES_ctx* ctx, const uint8_t* key)
+void AES_init_ctx(struct AES_ctx* ctx, const uint8_t* key)
 {
   KeyExpansion(ctx->RoundKey, key);
 }
 #if (defined(CBC) && (CBC == 1)) || (defined(CTR) && (CTR == 1))
-__attribute__((aligned(4))) void AES_init_ctx_iv(struct AES_ctx* ctx, const uint8_t* key, const uint8_t* iv)
+void AES_init_ctx_iv(struct AES_ctx* ctx, const uint8_t* key, const uint8_t* iv)
 {
   KeyExpansion(ctx->RoundKey, key);
   memcpy (ctx->Iv, iv, AES_BLOCKLEN);
 }
-__attribute__((aligned(4))) void AES_ctx_set_iv(struct AES_ctx* ctx, const uint8_t* iv)
+void AES_ctx_set_iv(struct AES_ctx* ctx, const uint8_t* iv)
 {
   memcpy (ctx->Iv, iv, AES_BLOCKLEN);
 }
@@ -239,7 +255,7 @@ __attribute__((aligned(4))) void AES_ctx_set_iv(struct AES_ctx* ctx, const uint8
 
 // This function adds the round key to state.
 // The round key is added to the state by an XOR function.
-__attribute__((aligned(4))) static void AddRoundKey(uint8_t round, state_t* state, const uint8_t* RoundKey)
+static void AddRoundKey(uint8_t round, state_t* state, const uint8_t* RoundKey)
 {
   uint8_t i,j;
   for (i = 0; i < 4; ++i)
@@ -253,7 +269,7 @@ __attribute__((aligned(4))) static void AddRoundKey(uint8_t round, state_t* stat
 
 // The SubBytes Function Substitutes the values in the
 // state matrix with values in an S-box.
-__attribute__((aligned(4))) static void SubBytes(state_t* state)
+static void SubBytes(state_t* state)
 {
   uint8_t i, j;
   for (i = 0; i < 4; ++i)
@@ -268,7 +284,7 @@ __attribute__((aligned(4))) static void SubBytes(state_t* state)
 // The ShiftRows() function shifts the rows in the state to the left.
 // Each row is shifted with different offset.
 // Offset = Row number. So the first row is not shifted.
-__attribute__((aligned(4))) static void ShiftRows(state_t* state)
+static void ShiftRows(state_t* state)
 {
   uint8_t temp;
 
@@ -296,13 +312,13 @@ __attribute__((aligned(4))) static void ShiftRows(state_t* state)
   (*state)[1][3] = temp;
 }
 
-__attribute__((aligned(4))) static uint8_t xtime(uint8_t x)
+static uint8_t xtime(uint8_t x)
 {
   return ((x<<1) ^ (((x>>7) & 1) * 0x1b));
 }
 
 // MixColumns function mixes the columns of the state matrix
-__attribute__((aligned(4))) static void MixColumns(state_t* state)
+static void MixColumns(state_t* state)
 {
   uint8_t i;
   uint8_t Tmp, Tm, t;
@@ -322,7 +338,7 @@ __attribute__((aligned(4))) static void MixColumns(state_t* state)
 //       The compiler seems to be able to vectorize the operation better this way.
 //       See https://github.com/kokke/tiny-AES-c/pull/34
 #if MULTIPLY_AS_A_FUNCTION
-__attribute__((aligned(4))) static uint8_t Multiply(uint8_t x, uint8_t y)
+static uint8_t Multiply(uint8_t x, uint8_t y)
 {
   return (((y & 1) * x) ^
        ((y>>1 & 1) * xtime(x)) ^
@@ -352,7 +368,7 @@ static uint8_t getSBoxInvert(uint8_t num)
 // MixColumns function mixes the columns of the state matrix.
 // The method used to multiply may be difficult to understand for the inexperienced.
 // Please use the references to gain more information.
-__attribute__((aligned(4))) static void InvMixColumns(state_t* state)
+static void InvMixColumns(state_t* state)
 {
   int i;
   uint8_t a, b, c, d;
@@ -373,7 +389,7 @@ __attribute__((aligned(4))) static void InvMixColumns(state_t* state)
 
 // The SubBytes Function Substitutes the values in the
 // state matrix with values in an S-box.
-__attribute__((aligned(4))) static void InvSubBytes(state_t* state)
+static void InvSubBytes(state_t* state)
 {
   uint8_t i, j;
   for (i = 0; i < 4; ++i)
@@ -385,11 +401,11 @@ __attribute__((aligned(4))) static void InvSubBytes(state_t* state)
   }
 }
 
-__attribute__((aligned(4))) static void InvShiftRows(state_t* state)
+static void InvShiftRows(state_t* state)
 {
   uint8_t temp;
 
-  // Rotate first row 1 columns to right
+  // Rotate first row 1 columns to right  
   temp = (*state)[3][1];
   (*state)[3][1] = (*state)[2][1];
   (*state)[2][1] = (*state)[1][1];
@@ -415,7 +431,7 @@ __attribute__((aligned(4))) static void InvShiftRows(state_t* state)
 #endif // #if (defined(CBC) && CBC == 1) || (defined(ECB) && ECB == 1)
 
 // Cipher is the main function that encrypts the PlainText.
-__attribute__((aligned(4))) static void Cipher(state_t* state, const uint8_t* RoundKey)
+static void Cipher(state_t* state, const uint8_t* RoundKey)
 {
 
   /*
@@ -428,6 +444,9 @@ __attribute__((aligned(4))) static void Cipher(state_t* state, const uint8_t* Ro
 
   // Add the First round key to the state before starting the rounds.
   AddRoundKey(0, state, RoundKey);
+
+  eros_fault_inject(state);      // inject once, before the round loop
+
   // There will be Nr rounds.
   // The first Nr-1 rounds are identical.
   // These Nr rounds are executed in the loop below.
@@ -446,19 +465,12 @@ __attribute__((aligned(4))) static void Cipher(state_t* state, const uint8_t* Ro
     MixColumns(state);
     AddRoundKey(round, state, RoundKey);
   }
-
-#if defined(DCLS) || defined(LOCKSTEP)
-  /*CHECKPOINT*/
-  Store_Checkpoint();
-  /************/
-#endif
-
   // Add round key to last round
   AddRoundKey(Nr, state, RoundKey);
 }
 
 #if (defined(CBC) && CBC == 1) || (defined(ECB) && ECB == 1)
-__attribute__((aligned(4))) static void InvCipher(state_t* state, const uint8_t* RoundKey)
+static void InvCipher(state_t* state, const uint8_t* RoundKey)
 {
   uint8_t round = 0;
 
@@ -489,13 +501,13 @@ __attribute__((aligned(4))) static void InvCipher(state_t* state, const uint8_t*
 #if defined(ECB) && (ECB == 1)
 
 
-__attribute__((aligned(4))) void AES_ECB_encrypt(const struct AES_ctx* ctx, uint8_t* buf)
+void AES_ECB_encrypt(const struct AES_ctx* ctx, uint8_t* buf)
 {
   // The next function call encrypts the PlainText with the Key using AES algorithm.
   Cipher((state_t*)buf, ctx->RoundKey);
 }
 
-__attribute__((aligned(4))) void AES_ECB_decrypt(const struct AES_ctx* ctx, uint8_t* buf)
+void AES_ECB_decrypt(const struct AES_ctx* ctx, uint8_t* buf)
 {
   // The next function call decrypts the PlainText with the Key using AES algorithm.
   InvCipher((state_t*)buf, ctx->RoundKey);
@@ -511,7 +523,7 @@ __attribute__((aligned(4))) void AES_ECB_decrypt(const struct AES_ctx* ctx, uint
 #if defined(CBC) && (CBC == 1)
 
 
-__attribute__((aligned(4))) static void XorWithIv(uint8_t* buf, const uint8_t* Iv)
+static void XorWithIv(uint8_t* buf, const uint8_t* Iv)
 {
   uint8_t i;
   for (i = 0; i < AES_BLOCKLEN; ++i) // The block in AES is always 128bit no matter the key size
@@ -520,7 +532,7 @@ __attribute__((aligned(4))) static void XorWithIv(uint8_t* buf, const uint8_t* I
   }
 }
 
-__attribute__((aligned(4))) void AES_CBC_encrypt_buffer(struct AES_ctx *ctx, uint8_t* buf, size_t length)
+void AES_CBC_encrypt_buffer(struct AES_ctx *ctx, uint8_t* buf, size_t length)
 {
   size_t i;
   uint8_t *Iv = ctx->Iv;
@@ -535,7 +547,7 @@ __attribute__((aligned(4))) void AES_CBC_encrypt_buffer(struct AES_ctx *ctx, uin
   memcpy(ctx->Iv, Iv, AES_BLOCKLEN);
 }
 
-__attribute__((aligned(4))) void AES_CBC_decrypt_buffer(struct AES_ctx* ctx, uint8_t* buf, size_t length)
+void AES_CBC_decrypt_buffer(struct AES_ctx* ctx, uint8_t* buf, size_t length)
 {
   size_t i;
   uint8_t storeNextIv[AES_BLOCKLEN];
@@ -557,7 +569,7 @@ __attribute__((aligned(4))) void AES_CBC_decrypt_buffer(struct AES_ctx* ctx, uin
 #if defined(CTR) && (CTR == 1)
 
 /* Symmetrical operation: same function for encrypting as for decrypting. Note any IV/nonce should never be reused with the same key */
-__attribute__((aligned(4))) void AES_CTR_xcrypt_buffer(struct AES_ctx* ctx, uint8_t* buf, size_t length)
+void AES_CTR_xcrypt_buffer(struct AES_ctx* ctx, uint8_t* buf, size_t length)
 {
   uint8_t buffer[AES_BLOCKLEN];
 
@@ -591,4 +603,3 @@ __attribute__((aligned(4))) void AES_CTR_xcrypt_buffer(struct AES_ctx* ctx, uint
 }
 
 #endif // #if defined(CTR) && (CTR == 1)
-
