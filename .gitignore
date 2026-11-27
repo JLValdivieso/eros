@@ -2,5 +2,9 @@
 ################
 
 sw/build
+sw/build_tasks
 sw/applications/gpio_fpga/*
 sw/applications/hello_world/*
+sw/linker/link_task*.ld
+sw/CB_device/lib/preemptive/eros_tasks_addr.h
+sw/host/eros_tasks_addr.h

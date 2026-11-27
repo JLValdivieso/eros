@@ -20,8 +20,11 @@ MEMORY
   /* Our testbench is a bit weird in that we initialize the RAM (thus
      allowing initialized sections to be placed there). Infact we dump all
      sections to ram. */
-  ram0 (rwxai) : ORIGIN = ${BaseAddressConfiguration.SystemBus.BaseAddress} + 0x00020000, LENGTH = 0x000008000
-  ram1 (rwxai) : ORIGIN = ${BaseAddressConfiguration.SystemBus.BaseAddress} + 0x00028000, LENGTH = 0x000008000
+  /* The last 64 B of ram1 are kept free for the initial sp table and the
+     signature words (EROS_INITIAL_SP_TABLE / EROS_SIGNATURE_ADDRESS in
+     eros_tasks.h, 64 B is the size for the maximum of 8 tasks). */
+  ram0 (rwxai) : ORIGIN = ${BaseAddressConfiguration.SystemBus.BaseAddress} + 0x00020000, LENGTH = 0x000010000
+  ram1 (rwxai) : ORIGIN = ${BaseAddressConfiguration.SystemBus.BaseAddress} + 0x00030000, LENGTH = 0x00000FFC0
 }
 
 /*

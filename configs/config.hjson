@@ -14,6 +14,20 @@
     NMasterAccelerator: 0
   }
 
+  # Independent tasks resident in memory at the same time (util/eros_tasks_gen.py).
+  # RAM0 (code) and RAM1 (data) are split in NTasks equal slots, each task also
+  # gets its own PREEMPTIVE_CONTEXT and SAFE_COPY slot near the top of RAM1,
+  # followed by the initial sp table and the 8 signature words.
+  TaskConfiguration: {
+    NTasks: 2                   # Overridden by NTASKS / TASK_APPS in make
+    # Minimum stack per task. The generator gives each task 1/4 of its RAM1 share
+    # if that is larger, and sizes its SAFE_COPY slot from the final stack
+    # (hex values can't carry a comment)
+    StackSize: 0x800
+    # Per task heap
+    HeapSize: 0x400
+  }
+
   BaseAddressConfiguration: {
     CSR: {
       BaseAddress: 0x03080000

@@ -59,6 +59,27 @@ eros-app: eros-app-restore
 eros-app-restore:
 	rm -rf sw/build
 
+# Build N independent applications that live in memory at the same time.
+TASK_APPS ?= task0 task1
+NTASKS    ?= $(words $(TASK_APPS))
+TASKS_DIR ?= sw/build_tasks
+
+# Only regenerate the task layout (linker scripts + eros_tasks.h)
+eros-tasks:
+	python3 ./util/eros_tasks_gen.py --addr_config configs/$(EROS_CONFIG) --ntasks $(NTASKS)
+
+eros-app-tasks: eros-tasks
+	rm -rf $(TASKS_DIR)
+	@i=0; for app in $(TASK_APPS); do \
+		$(MAKE) eros-app PROJECT=$$app LINKER=task$$i || exit 1; \
+		mkdir -p $(TASKS_DIR)/task$$i; \
+		cp sw/build/main.* $(TASKS_DIR)/task$$i/; \
+		i=$$((i+1)); \
+	done
+# All the tasks in one image (with the padding between them) to load at the
+# RAM0 base: the per-task main<i>.bin overwrite each other when loaded.
+	python3 ./util/eros_tasks_merge.py -o $(TASKS_DIR)/tasks.bin $(TASKS_DIR)/task*/main.elf
+
 ## Clean the CMake build folder
 eros-app-clean:
 	if [ -f "sw/build/Makefile" ]; then\
